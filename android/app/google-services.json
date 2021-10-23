@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1046375098590",
+    "project_id": "acuarium-3dcac",
+    "storage_bucket": "acuarium-3dcac.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1046375098590:android:110065ac1647713bdcba4f",
+        "android_client_info": {
+          "package_name": "com.acuarium.acuarium"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1046375098590-325a6tcmb9ltccc1d6f8q83c8v7h2ok0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.acuarium.acuarium",
+            "certificate_hash": "1b139bdd2316f8444b214d942c143c4d93d06b00"
+          }
+        },
+        {
+          "client_id": "1046375098590-15ir6g10350a5t7rl2g1l8bs4qpi4bqi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCTYvFRqvmp1uvS1lzEMMl6O1CdcUJcmaM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1046375098590-15ir6g10350a5t7rl2g1l8bs4qpi4bqi.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
