@@ -4,9 +4,12 @@ class RoundedIconTextFormField extends StatelessWidget {
   final bool enabled;
   final String labelText;
   final IconData? prefixIcon;
+  final String? prefixText;
   final Widget? suffixIcon;
+  final String? suffixText;
   final TextInputType? keyboardType;
   final String? initialValue;
+  final int? maxLines;
   final bool obscureText;
   final bool enableSuggestions;
   final bool autocorrect;
@@ -22,9 +25,12 @@ class RoundedIconTextFormField extends StatelessWidget {
       this.enabled = true,
       required this.labelText,
       this.prefixIcon,
+      this.prefixText,
       this.suffixIcon,
+      this.suffixText,
       this.keyboardType,
       this.initialValue,
+      this.maxLines = 1,
       this.maxLength,
       this.obscureText = false,
       this.enableSuggestions = false,
@@ -48,7 +54,9 @@ class RoundedIconTextFormField extends StatelessWidget {
           labelText: labelText,
           errorMaxLines: 10,
           prefixIcon: Icon(prefixIcon),
+          prefixText: prefixText,
           suffixIcon: suffixIcon,
+          suffixText: suffixText,
           border: OutlineInputBorder(
             borderRadius: const BorderRadius.all(Radius.circular(16.0)),
             borderSide: BorderSide(
@@ -57,6 +65,7 @@ class RoundedIconTextFormField extends StatelessWidget {
           )
         ),
         initialValue: initialValue,
+        maxLines: maxLines,
         readOnly: readOnly,
         maxLength: maxLength,
         obscureText: obscureText,

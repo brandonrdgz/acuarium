@@ -9,4 +9,13 @@ class Auth {
         password: contrasenia
       );
   }
+
+  static Future<UserCredential> iniciarSesion({required String correo, required String contrasenia}) async {
+    return FirebaseAuth
+      .instance
+      .signInWithEmailAndPassword(
+        email: correo,
+        password: contrasenia
+      );
+  }
 }
