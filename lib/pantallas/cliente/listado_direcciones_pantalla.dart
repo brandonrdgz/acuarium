@@ -5,6 +5,7 @@ import 'package:acuarium/modelos/direccion.dart';
 import 'package:acuarium/pantallas/cliente/agregar_direccion_pantalla.dart';
 import 'package:acuarium/pantallas/cliente/editar_direccion_pantalla.dart';
 import 'package:acuarium/pantallas/cliente/informacion_direccion_pantalla.dart';
+import 'package:acuarium/pantallas/cliente/menu_cliente_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -171,6 +172,10 @@ class _DireccionesListaState extends State<DireccionesLista> with TickerProvider
       appBar: AppBar(
           title: Text('Direcciónes'),
           backgroundColor: Colors.blueAccent,
+      ),
+            drawer: MenuClienteDrawer(
+        nombreEncabezado: 'Cliente',
+        correoEncabezado: 'cliente@cliente.com',
       ),
       body: Column(children: [
             _searchField(),

@@ -4,6 +4,7 @@ import 'package:acuarium/componentes/dialogo.dart';
 import 'package:acuarium/componentes/rounded_icon_text_form_field.dart';
 import 'package:acuarium/componentes/tarjeta.dart';
 import 'package:acuarium/pantallas/cliente/pagina_principal_cliente_pantalla.dart';
+import 'package:acuarium/pantallas/inicio_sesion_pantalla.dart';
 import 'package:acuarium/pantallas/negocio/pagina_principal_negocio_pantalla.dart';
 import 'package:acuarium/servicios/firebase/auth.dart';
 import 'package:acuarium/servicios/firebase/firestore.dart';
@@ -204,6 +205,30 @@ class _RegistroPantallaState extends State<RegistroPantalla> {
                           ),
                         ),
                         onPressed: _registrarse
+                      ),
+                    ElevatedButton(
+                        child: const Text(
+                          'Iniciar Sesión ',
+                          style: TextStyle(
+                            fontSize: 20
+                          ),
+                        ),
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all<Color>(Colors.blue.shade200),
+                          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16.0)
+                            )
+                          ),
+                        ),
+                        onPressed: (){
+                        Navigator.pop(context);
+                        Navigator.pushNamed(
+                          context,
+                          InicioSesionPantalla.id
+                        );
+
+                        }
                       ),
                       const SizedBox(
                         height: 20.0,

@@ -146,14 +146,25 @@ _update() async {
                 _formField('Código Postal', codigoPostalCont,TextInputType.number,Icons.mail),
                 EstadoMunicipoInput(estadoCont:estadoCont,municipioCont:municipioCont),
                 Divider(),
-                TextButton(onPressed:()async=>{await _positonPicker()},                  
-                  style: TextButton.styleFrom(
-                          primary: Colors.white,
-                          backgroundColor: Colors.blueAccent
+                                     ElevatedButton(
+                        child: const Text(
+                          'Posición',
+                          style: TextStyle(
+                            fontSize: 20
+                          ),
                         ),
-                  child: Text("Posición", style: 
-                  TextStyle( fontWeight: FontWeight.bold, fontSize:18.0 ))
-                ),
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all<Color>(Colors.blue.shade200),
+                          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16.0)
+                            )
+                          ),
+                        ),
+                        onPressed: (){
+
+                        }
+                      ),
                 SizedBox(height: 20,),
                 positionLoaded?
                 SizedBox(

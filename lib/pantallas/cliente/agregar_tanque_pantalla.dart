@@ -13,7 +13,7 @@ class TanqueNuevo extends StatefulWidget {
 
 class _TanqueNuevoState extends State<TanqueNuevo> {
   List<Image> images=[Image(
-                            image: AssetImage('acuarium.png'),
+                            image: AssetImage('images/acuarium.png'),
                             )];
   TextEditingController nombreCont = new TextEditingController();
   TextEditingController litrosCont = new TextEditingController();

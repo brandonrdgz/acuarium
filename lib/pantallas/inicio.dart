@@ -34,7 +34,7 @@ class Inicio extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: PaginaPrincipalNegocioPantalla.id,
+      initialRoute: RegistroPantalla.id,
       routes: {
         InicioSesionPantalla.id: (context) => InicioSesionPantalla(),
         RegistroPantalla.id: (context) => RegistroPantalla(),

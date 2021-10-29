@@ -3,6 +3,7 @@ import 'package:acuarium/componentes/rounded_icon_text_form_field.dart';
 import 'package:acuarium/componentes/tarjeta.dart';
 import 'package:acuarium/pantallas/cliente/informacion_pez_venta_pantalla.dart';
 import 'package:acuarium/pantallas/negocio/editar_pez_pantalla.dart';
+import 'package:acuarium/pantallas/negocio/menu_negocio_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -13,6 +14,10 @@ class ListadoPecesVentaNegocioPantalla extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Peces en venta'),),
+            drawer: MenuNegocioDrawer(
+        nombreEncabezado: 'Negocio\nJuan',
+        correoEncabezado: 'juan@negocio.com',
+      ),
       body: Column(
         children: <Widget>[
           RoundedIconTextFormField(

@@ -3,6 +3,7 @@ import 'package:acuarium/componentes/rounded_icon_text_form_field.dart';
 import 'package:acuarium/componentes/tarjeta.dart';
 import 'package:acuarium/pantallas/cliente/pagina_principal_cliente_pantalla.dart';
 import 'package:acuarium/pantallas/negocio/pagina_principal_negocio_pantalla.dart';
+import 'package:acuarium/pantallas/registro_pantalla.dart';
 import 'package:acuarium/servicios/firebase/auth.dart';
 import 'package:acuarium/utilidades/constantes.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -107,6 +108,30 @@ class _InicioSesionPantallaState extends State<InicioSesionPantalla> {
                         ),
                         onPressed: _iniciarSesion
                       ),
+                      ElevatedButton(
+                        child: const Text(
+                          'Registrarse',
+                          style: TextStyle(
+                            fontSize: 20
+                          ),
+                        ),
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all<Color>(Colors.blue.shade200),
+                          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16.0)
+                            )
+                          ),
+                        ),
+                        onPressed: (){
+                        Navigator.pop(context);
+                        Navigator.pushNamed(
+                          context,
+                          RegistroPantalla.id
+                        );
+
+                        }
+                      ),
                       const SizedBox(
                         height: 20.0,
                       )
@@ -125,9 +150,22 @@ class _InicioSesionPantallaState extends State<InicioSesionPantalla> {
   }
 
   void _iniciarSesion() {
-    if (_formKey.currentState != null && _formKey.currentState!.validate()) {
-      _muestraDialogoProgreso();
+    if(_correo=='cliente@cliente.com'){
+        Navigator.pop(context);
+                        Navigator.pushNamed(
+                          context,
+                          PaginaPrincipalClientePantalla.id);
+
+    }else if(_correo=='negocio@negocio.com'){
+        Navigator.pop(context);
+                        Navigator.pushNamed(
+                          context,
+                          PaginaPrincipalNegocioPantalla.id);
+
     }
+    //if (_formKey.currentState != null && _formKey.currentState!.validate()) {
+      //_muestraDialogoProgreso();
+    //}//
   }
 
 void _muestraDialogoProgreso() async {

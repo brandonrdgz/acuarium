@@ -1,6 +1,7 @@
 import 'package:acuarium/componentes/rounded_icon_text_form_field.dart';
 import 'package:acuarium/componentes/tarjeta.dart';
 import 'package:acuarium/pantallas/cliente/informacion_pedido_cliente_pantalla.dart';
+import 'package:acuarium/pantallas/cliente/menu_cliente_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -12,6 +13,10 @@ class ListadoPedidosClientePantalla extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Pedidos')),
+            drawer: MenuClienteDrawer(
+        nombreEncabezado: 'Cliente',
+        correoEncabezado: 'cliente@cliente.com',
+      ),
       body: Column(
         children: <Widget>[
           RoundedIconTextFormField(

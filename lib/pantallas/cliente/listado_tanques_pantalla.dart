@@ -5,6 +5,7 @@ import 'package:acuarium/modelos/tanque.dart';
 import 'package:acuarium/pantallas/cliente/agregar_tanque_pantalla.dart';
 import 'package:acuarium/pantallas/cliente/editar_tanque_pantalla.dart';
 import 'package:acuarium/pantallas/cliente/informacion_tanque_pantalla.dart';
+import 'package:acuarium/pantallas/cliente/menu_cliente_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -55,6 +56,10 @@ class  TanquesState extends State <Tanques> {
       appBar: AppBar(
           title: Text('Tanques'),
           backgroundColor: Colors.blueAccent,
+      ),
+            drawer: MenuClienteDrawer(
+        nombreEncabezado: 'Cliente',
+        correoEncabezado: 'cliente@cliente.com',
       ),
       body: Column(children: [
             _searchField(),

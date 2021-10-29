@@ -1,7 +1,9 @@
 import 'package:acuarium/componentes/menu.dart';
 import 'package:acuarium/pantallas/cliente/carrito_pantalla.dart';
+import 'package:acuarium/pantallas/cliente/listado_direcciones_pantalla.dart';
 import 'package:acuarium/pantallas/cliente/listado_peces_venta_cliente_pantalla.dart';
 import 'package:acuarium/pantallas/cliente/listado_pedidos_cliente_pantalla.dart';
+import 'package:acuarium/pantallas/cliente/listado_tanques_pantalla.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -21,6 +23,13 @@ class MenuClienteDrawer extends StatelessWidget {
         ListTile(
           leading: Icon(FontAwesomeIcons.water),
           title: Text('Mis acuarios'),
+                    onTap: () {
+            Navigator.pop(context);
+            Navigator.pushNamed(
+              context,
+              Tanques.id
+            );
+          },
         ),
         ListTile(
           leading: Icon(FontAwesomeIcons.box),
@@ -36,6 +45,13 @@ class MenuClienteDrawer extends StatelessWidget {
         ListTile(
           leading: Icon(FontAwesomeIcons.mapMarkedAlt),
           title: Text('Mis direcciones'),
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.pushNamed(
+              context,
+              DireccionesLista.id
+            );
+          },
         ),
         Divider(
           color: Colors.blue,

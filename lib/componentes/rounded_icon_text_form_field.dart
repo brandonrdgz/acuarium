@@ -19,7 +19,6 @@ class RoundedIconTextFormField extends StatelessWidget {
   final ValueChanged<String>? onChanged;
   final GestureTapCallback? onTap;
   final FormFieldValidator<String>? validator;
-  final int? maxLines;
 
   RoundedIconTextFormField(
     {
@@ -41,7 +40,6 @@ class RoundedIconTextFormField extends StatelessWidget {
       this.onChanged,
       this.onTap,
       required this.validator,
-      this.maxLines,
     }
   );
 
@@ -68,7 +66,6 @@ class RoundedIconTextFormField extends StatelessWidget {
           )
         ),
         initialValue: initialValue,
-        maxLines: maxLines,
         readOnly: readOnly,
         maxLength: maxLength,
         obscureText: obscureText,
