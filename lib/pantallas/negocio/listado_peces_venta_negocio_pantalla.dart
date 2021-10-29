@@ -1,7 +1,7 @@
 import 'package:acuarium/componentes/dialogo.dart';
 import 'package:acuarium/componentes/rounded_icon_text_form_field.dart';
 import 'package:acuarium/componentes/tarjeta.dart';
-import 'package:acuarium/pantallas/cliente/informacion_pez_venta_pantalla.dart';
+import 'package:acuarium/pantallas/negocio/agregar_pez_pantalla.dart';
 import 'package:acuarium/pantallas/negocio/editar_pez_pantalla.dart';
 import 'package:acuarium/pantallas/negocio/informacion_pez_pantalla.dart';
 import 'package:flutter/material.dart';
@@ -151,7 +151,9 @@ class ListadoPecesVentaNegocioPantalla extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(FontAwesomeIcons.plus),
-        onPressed: () {},
+        onPressed: () {
+          Navigator.pushNamed(context, AgregarPezPantalla.id);
+        },
       ),
     );
   }

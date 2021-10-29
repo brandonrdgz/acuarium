@@ -4,6 +4,7 @@ import 'package:acuarium/componentes/dialogo.dart';
 import 'package:acuarium/componentes/rounded_icon_text_form_field.dart';
 import 'package:acuarium/componentes/tarjeta.dart';
 import 'package:acuarium/pantallas/cliente/pagina_principal_cliente_pantalla.dart';
+import 'package:acuarium/pantallas/inicio_sesion_pantalla.dart';
 import 'package:acuarium/pantallas/negocio/pagina_principal_negocio_pantalla.dart';
 import 'package:acuarium/servicios/firebase/auth.dart';
 import 'package:acuarium/servicios/firebase/firestore.dart';
@@ -136,7 +137,7 @@ class _RegistroPantallaState extends State<RegistroPantalla> {
                       RoundedIconTextFormField(
                         labelText: 'Contraseña',
                         prefixIcon: FontAwesomeIcons.key,
-                        obscureText: _muestraContrasenia,
+                        obscureText: !_muestraContrasenia,
                         suffixIcon: IconButton(
                           icon: Icon(_iconoAlternaContrasenia),
                           onPressed: () {
@@ -187,6 +188,34 @@ class _RegistroPantallaState extends State<RegistroPantalla> {
                             return 'El nombre de negocio no es válido';
                           }
                         },
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            Text(
+                              '¿Ya tienes cuenta? ',
+                              style: TextStyle(
+                                fontSize: 16,
+                              )
+                            ),
+                            GestureDetector(
+                              child: Text(
+                                'Inicia sesión',
+                                style: TextStyle(
+                                  color: Colors.blue,
+                                  fontSize: 16,
+                                  decoration: TextDecoration.underline
+                                ),
+                              ),
+                              onTap: () {
+                                Navigator.pop(context);
+                                Navigator.pushNamed(context, InicioSesionPantalla.id);
+                              },
+                            )
+                          ],
+                        ),
                       ),
                       ElevatedButton(
                         child: const Text(

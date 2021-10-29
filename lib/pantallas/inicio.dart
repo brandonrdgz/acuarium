@@ -30,11 +30,14 @@ import 'inicio_sesion_pantalla.dart';
 import 'registro_pantalla.dart';
 
 class Inicio extends StatelessWidget {
+  final String rutaInicial;
+  Inicio({required this.rutaInicial});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: PaginaPrincipalNegocioPantalla.id,
+      initialRoute: rutaInicial,
       routes: {
         InicioSesionPantalla.id: (context) => InicioSesionPantalla(),
         RegistroPantalla.id: (context) => RegistroPantalla(),

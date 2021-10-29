@@ -3,6 +3,7 @@ import 'package:acuarium/componentes/rounded_icon_text_form_field.dart';
 import 'package:acuarium/componentes/tarjeta.dart';
 import 'package:acuarium/pantallas/cliente/pagina_principal_cliente_pantalla.dart';
 import 'package:acuarium/pantallas/negocio/pagina_principal_negocio_pantalla.dart';
+import 'package:acuarium/pantallas/registro_pantalla.dart';
 import 'package:acuarium/servicios/firebase/auth.dart';
 import 'package:acuarium/utilidades/constantes.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -69,7 +70,7 @@ class _InicioSesionPantallaState extends State<InicioSesionPantalla> {
                       RoundedIconTextFormField(
                         labelText: 'Contraseña',
                         prefixIcon: FontAwesomeIcons.key,
-                        obscureText: _muestraContrasenia,
+                        obscureText: !_muestraContrasenia,
                         suffixIcon: IconButton(
                           icon: Icon(_iconoAlternaContrasenia),
                           onPressed: () {
@@ -85,10 +86,38 @@ class _InicioSesionPantallaState extends State<InicioSesionPantalla> {
                           });
                         },
                         validator: (String? contrasenia) {
-                          if (contrasenia != null || contrasenia!.isEmpty) {
+                          if (contrasenia == null || contrasenia.isEmpty) {
                             return 'La contrasenia no puede estar vacía';
                           }
                         }
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            Text(
+                              '¿No tienes cuenta? ',
+                              style: TextStyle(
+                                fontSize: 16,
+                              )
+                            ),
+                            GestureDetector(
+                              child: Text(
+                                'Registrate',
+                                style: TextStyle(
+                                  color: Colors.blue,
+                                  fontSize: 16,
+                                  decoration: TextDecoration.underline
+                                ),
+                              ),
+                              onTap: () {
+                                Navigator.pop(context);
+                                Navigator.pushNamed(context, RegistroPantalla.id);
+                              },
+                            )
+                          ],
+                        ),
                       ),
                       ElevatedButton(
                         child: const Text(
@@ -168,6 +197,19 @@ void _muestraDialogoProgreso() async {
         Navigator.pushNamed(context, ruta);
       },
       enError: (error) {
+        Dialogo.dialogo(
+          context,
+          titulo: Icon(FontAwesomeIcons.timesCircle, color: Colors.red),
+          contenido: Text('Ocurrio un error al iniciar sesión'),
+          acciones: <Widget>[
+            TextButton(
+              child: Text('Aceptar'),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            )
+          ]
+        );
         print(error);
       }
     );

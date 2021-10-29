@@ -18,4 +18,8 @@ class Auth {
         password: contrasenia
       );
   }
+
+  static Future<void> cerrarSesion() {
+    return FirebaseAuth.instance.signOut();
+  }
 }
