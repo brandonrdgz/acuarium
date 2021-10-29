@@ -6,7 +6,11 @@ import 'package:acuarium/pantallas/cliente/agregar_direccion_pantalla.dart';
 import 'package:acuarium/pantallas/cliente/editar_direccion_pantalla.dart';
 import 'package:acuarium/pantallas/cliente/informacion_direccion_pantalla.dart';
 import 'package:acuarium/pantallas/cliente/menu_cliente_drawer.dart';
+import 'package:acuarium/servicios/firebase/auth.dart';
+import 'package:acuarium/servicios/firebase/firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class DireccionesLista extends StatefulWidget {
@@ -18,36 +22,22 @@ class DireccionesLista extends StatefulWidget {
 }
 
 class _DireccionesListaState extends State<DireccionesLista> with TickerProviderStateMixin {
-  static const String _uid='UE6kbvXbLpFWCVBSzsF2';
-  List<Direccion> items=[];
-  //final CouldFireStoreService _db= CouldFireStoreService();
-  late TextEditingController searchControler;
-  bool isSearching =false;
+  static const String _titulo = 'Direcciónes';
+  List<Direccion> _items=[]; 
+  List<Direccion> _filterItems=[];  
+  late TextEditingController _searchControler;
+  bool _isSearching =false;
 
   
   @override
   void initState() {
       super.initState();
-      searchControler= new TextEditingController();
-        for(var i=0;i<4;i++){
-        Direccion t= new Direccion();
-        t.setId='$i';
-        t.setIdCliente='$i';
-        t.setNombre='Direccion$i';
-        t.setCalle='Calle$i';
-        t.setNumero='$i';
-        t.setCodigoPostal='524$i';
-        t.setMunicipio='Aguascalientes';
-        t.setEstado='Aguascalientes';
-        t.setLat=19.263118916452402;
-        t.setLng=-99.63582289076116;
-        items.add(t);
-      }
+      _searchControler= new TextEditingController();
   }
 @override
   void dispose(){
     super.dispose();
-    searchControler.dispose();
+    _searchControler.dispose();
 
   }
 
@@ -60,12 +50,21 @@ class _DireccionesListaState extends State<DireccionesLista> with TickerProvider
                     RoundedIconTextFormField(
                       validator: (val) => val!.isEmpty ?' vacio':null,
                       labelText: 'Búsqueda',
-                      controller: searchControler,
+                      controller: _searchControler,
                       prefixIcon:Icons.search,
                       keyboardType: TextInputType.text,
                       onChanged: (string) {
                           setState(() {
-                            searchControler.text.isNotEmpty?isSearching=true:isSearching=false;
+                            _searchControler.text.isNotEmpty?_isSearching=true:_isSearching=false;
+                            if(_isSearching){
+                              _filterItems.clear();
+                              _items.forEach((element) {
+                                if(element.getNombre.startsWith(_searchControler.text)){
+                                  _filterItems.add(element);
+                                }
+                               });
+                            }
+
                           });
                         },
                     ),
@@ -73,9 +72,9 @@ class _DireccionesListaState extends State<DireccionesLista> with TickerProvider
                   ]);               
 }
 
-  /*_listFromStream(){
+  _listFromStream(){
   return  StreamBuilder(
-  stream: isSearching?_db.getFiltraDirecciones(_uid,searchControler.text).snapshots():_db.getDirecciones(_uid).snapshots(),
+  stream: Firestore.listaDirecciones(uid: Auth.getUserId()!),
   builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (snapshot.hasError) {
           return Text('Ocurrio un error');
@@ -89,16 +88,25 @@ class _DireccionesListaState extends State<DireccionesLista> with TickerProvider
           return Text('Sin datos');
         }
 
-        items.clear();
+        _items.clear();
         snapshot.data!.docs.forEach((element) {
-          items.add(Direccion.fromSnapshot(element));
+          _items.add(Direccion.fromSnapshot(element));
         });
-        return _listBuilder();
+        return _listBuilder(_items);
   });
 
-}*/
+}
+  _listFromFilter(){
+        if (_filterItems.length==0) {
+          return Text('Sin resultados');
+        }else{
+          return _listBuilder(_filterItems);
+        }
+        
+  }
 
-  _listBuilder(){
+
+  _listBuilder(List<Direccion> items){
    return ListView.builder(
               itemCount: items.length,
               padding: EdgeInsets.only(top:12.0),
@@ -134,7 +142,10 @@ class _DireccionesListaState extends State<DireccionesLista> with TickerProvider
                                           contenido: Text('¿Eliminar ${items[position].getNombre}?'),
                                           acciones: [
                                             IconButton(icon: Icon(FontAwesomeIcons.check, color: Colors.blueAccent,),
-                                                        onPressed: ()=>{Navigator.pop(context)},),
+                                                        onPressed: (){
+                                                          Navigator.pop(context);
+                                                        _confirmaEliminacion(items[position]);
+                                                        },),
                                             IconButton(icon: Icon(FontAwesomeIcons.ban,color: Colors.blueGrey),
                                                         onPressed: ()=>{Navigator.pop(context)},),
                                           ])
@@ -164,23 +175,55 @@ class _DireccionesListaState extends State<DireccionesLista> with TickerProvider
    Navigator.pushNamed(context, NuevaDireccion.id,); 
   }
 
+ _confirmaEliminacion(Direccion d){
+  var res = Firestore.eliminaDireccion(uid: Auth.getUserId()!, rid: d.getId);
+  Dialogo.dialogoProgreso(context,
+                          contenido: Text('Eliminando ${d.getNombre}'),
+                          future: res, 
+                          alTerminar: (resultado){
+                                Fluttertoast.showToast(
+                                msg: 'Datos Borrados',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                timeInSecForIosWeb: 1,
+                                backgroundColor: Colors.blueAccent,
+                                textColor: Colors.white,
+                                fontSize: 16.0
+                            );
+                          }, 
+                          enError: (resultado){
+                            Fluttertoast.showToast(
+                                msg: 'Error: $resultado',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                timeInSecForIosWeb: 1,
+                                backgroundColor: Colors.blueGrey,
+                                textColor: Colors.white,
+                                fontSize: 16.0
+                            );
+
+                          }, );
+  }
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-          title: Text('Direcciónes'),
+          title: Text(_titulo),
           backgroundColor: Colors.blueAccent,
       ),
-            drawer: MenuClienteDrawer(
-        nombreEncabezado: 'Cliente',
-        correoEncabezado: 'cliente@cliente.com',
+      drawer: MenuClienteDrawer(
+        nombreEncabezado: Auth.getUserId()!,
+        correoEncabezado: Auth.getUserEmail()!,
       ),
       body: Column(children: [
             _searchField(),
             Divider(),
-            Flexible(child: _listBuilder()/*_listFromStream()*/)
+            Flexible(
+              child:_isSearching?_listFromFilter():_listFromStream()
+              )
             ],
           ),
         floatingActionButton: FloatingActionButton(

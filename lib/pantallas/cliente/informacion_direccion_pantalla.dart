@@ -1,8 +1,12 @@
 import 'package:acuarium/componentes/dialogo.dart';
+import 'package:acuarium/componentes/etiquetas.dart';
 import 'package:acuarium/modelos/direccion.dart';
 import 'package:acuarium/pantallas/cliente/editar_direccion_pantalla.dart';
+import 'package:acuarium/servicios/firebase/auth.dart';
+import 'package:acuarium/servicios/firebase/firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -15,8 +19,8 @@ class DireccionVista extends StatefulWidget {
 }
 
 class _DireccionVistaState extends State<DireccionVista> {
-  late final Direccion direccion;
-  late GoogleMapController mapController;
+  late final Direccion _direccion;
+  late GoogleMapController _mapController;
   Set<Marker> _markers = Set();
   late LatLng _center;
   @override
@@ -26,18 +30,18 @@ class _DireccionVistaState extends State<DireccionVista> {
 
   }
   init(){
-    direccion = ModalRoute.of(context)!.settings.arguments as Direccion;
-     _center = LatLng(direccion.getLat,direccion.getLng);
+    _direccion = ModalRoute.of(context)!.settings.arguments as Direccion;
+     _center = LatLng(_direccion.getLat,_direccion.getLng);
     _markers.add(
               Marker(
-                markerId: MarkerId(direccion.getNombre),
-                position: LatLng(direccion.getLat,direccion.getLng)
+                markerId: MarkerId(_direccion.getNombre),
+                position: LatLng(_direccion.getLat,_direccion.getLng)
               )
             );
   }
   
   void _onMapCreated(GoogleMapController controller) {
-    mapController = controller;
+    _mapController = controller;
   }
   @override
   Widget build(BuildContext context) {
@@ -45,20 +49,27 @@ class _DireccionVistaState extends State<DireccionVista> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-          title: Text(direccion.getNombre),
+          title: Text(_direccion.getNombre),
           backgroundColor: Colors.blueAccent,
       ),
-      body: SingleChildScrollView(
+      body: _body(),
+      floatingActionButton: _getFAB(),
+    );
+  }
+    _body(){
+      return SingleChildScrollView(
           child: Column(
             children: [  
-                  _iconLabel(Icon(FontAwesomeIcons.infoCircle, color: Colors.blueAccent),' Datos'),
-                  _label('Calle', direccion.getCalle),
-                  _label('Número', direccion.getNumero),
-                  _label('Código Postal', direccion.getCodigoPostal),
-                  _label('Municipio', direccion.getMunicipio),
-                  _label('Estado', direccion.getEstado),    
+                  IconLabel(icon: Icon(FontAwesomeIcons.infoCircle, color: Colors.blueAccent),
+                            text: ' Datos'),
+                  TextLabel(label:'Calle',text:_direccion.getCalle),
+                  TextLabel(label:'Número', text:_direccion.getNumero),
+                  TextLabel(label:'Código Postal',text: _direccion.getCodigoPostal),
+                  TextLabel(label: 'Municipio', text:_direccion.getMunicipio),
+                  TextLabel(label:'Estado', text:_direccion.getEstado),    
                    Divider(thickness: 2,),  
-                   _iconLabel(Icon(FontAwesomeIcons.mapMarker, color: Colors.blueAccent),' Posición'),  
+                   IconLabel(icon:Icon(FontAwesomeIcons.mapMarker, color: Colors.blueAccent),
+                            text:' Posición'),  
                    SizedBox(height: 20,),
                 SizedBox(
                 width: MediaQuery.of(context).size.width, // or use fixed size like 200
@@ -72,15 +83,10 @@ class _DireccionVistaState extends State<DireccionVista> {
                 ),
             )
             ),
-           
-         
             ]
         ),
-      ),      
-      floatingActionButton: _getFAB(),
-    );
-  }
-
+      );     
+    }
     Widget _getFAB() {
         return SpeedDial(
           animatedIcon: AnimatedIcons.menu_close,
@@ -94,7 +100,7 @@ class _DireccionVistaState extends State<DireccionVista> {
                 child: Icon(Icons.edit, color: Colors.white),
                 backgroundColor: Colors.blueAccent,
                 onTap: () { 
-                  Navigator.pushNamed(context, EditarDireccion.id,arguments:direccion); 
+                  Navigator.pushNamed(context, EditarDireccion.id,arguments:_direccion); 
                  },
                 label: 'Editar',
                 labelStyle: TextStyle(
@@ -107,16 +113,7 @@ class _DireccionVistaState extends State<DireccionVista> {
                 child: Icon(Icons.delete, color: Colors.white),
                 backgroundColor: Colors.blueAccent,
                 onTap: () {
-                                              Dialogo.dialogo(
-                                          context,                                     
-                                          titulo:Text('Atención'),
-                                          contenido: Text('¿Eliminar ${direccion.getNombre}?'),
-                                          acciones: [
-                                            IconButton(icon: Icon(FontAwesomeIcons.check, color: Colors.blueAccent,),
-                                                        onPressed: ()=>{Navigator.pop(context)},),
-                                            IconButton(icon: Icon(FontAwesomeIcons.ban,color: Colors.blueGrey),
-                                                        onPressed: ()=>{Navigator.pop(context)},),
-                                          ]);
+                    _eliminationDialog( _direccion.getNombre);
                 },
                 label: 'Eliminar',
                 labelStyle: TextStyle(
@@ -127,44 +124,56 @@ class _DireccionVistaState extends State<DireccionVista> {
           ],
         );
   }
-  _edit(BuildContext context, Direccion dir) async{
-   //await Navigator.push(context, MaterialPageRoute(builder: (context) => DireccionNE(direccion:dir),));
+
+  _eliminationDialog(String nombre){
+                                                  Dialogo.dialogo(
+                                          context,                                     
+                                          titulo:Text('Atención'),
+                                          contenido: Text('¿Eliminar ${nombre}?'),
+                                          acciones: [
+                                            IconButton(icon: Icon(FontAwesomeIcons.check, color: Colors.blueAccent,),
+                                                        onPressed: ()
+                                                        {Navigator.pop(context);
+                                                        _confirmaEliminacion();
+                                                        },),
+                                            IconButton(icon: Icon(FontAwesomeIcons.ban,color: Colors.blueGrey),
+                                                        onPressed: ()=>{Navigator.pop(context)},),
+                                          ]);
   }
 
-Row _iconLabel(Icon icon, String campo){
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.start,
-    children: [
-      Flexible(
-        child:icon,
-      ),
-      Flexible(
-        child:
-          Text("$campo: ",
-                      style: TextStyle( fontWeight: FontWeight.bold, fontSize:20.0 ) 
-              )
-      ),
-    ]
-  );                  
+  _confirmaEliminacion(){
+  var res = Firestore.eliminaDireccion(uid: Auth.getUserId()!, rid: _direccion.getId);
+  Dialogo.dialogoProgreso(context,
+                          contenido: Text('Eliminando ${_direccion.getNombre}'),
+                          future: res, 
+                          alTerminar: (resultado){
+                                Fluttertoast.showToast(
+                                msg: 'Datos Borrados',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                timeInSecForIosWeb: 1,
+                                backgroundColor: Colors.blueAccent,
+                                textColor: Colors.white,
+                                fontSize: 16.0
+                            );
+                            Navigator.pop(context);
+                          }, 
+                          enError: (resultado){
+                            Fluttertoast.showToast(
+                                msg: 'Error: $resultado',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                timeInSecForIosWeb: 1,
+                                backgroundColor: Colors.blueGrey,
+                                textColor: Colors.white,
+                                fontSize: 16.0
+                            );
+
+                          }, );
+  }
+
+
 }
-Row _label(String campo,  val){
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.start,
-    children: [
-      Flexible(
-        child:
-          Text("$campo:",
-                      style: TextStyle( fontWeight: FontWeight.bold, fontSize:20.0 ) 
-              ),
-      ),
-      Flexible(
-        child:
-          Text("$val",
-                      style: TextStyle( fontWeight: FontWeight.normal, fontSize:18.0 ) 
-              ),
-      ),
-    ]
-  );                  
-}
-}
+
+
 

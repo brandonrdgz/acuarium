@@ -1,7 +1,14 @@
 import 'package:acuarium/componentes/control_estado_municipio.dart';
+import 'package:acuarium/componentes/dialogo.dart';
 import 'package:acuarium/componentes/rounded_icon_text_form_field.dart';
+import 'package:acuarium/componentes/tarjeta.dart';
 import 'package:acuarium/modelos/direccion.dart';
+import 'package:acuarium/servicios/firebase/auth.dart';
+import 'package:acuarium/servicios/firebase/firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -14,25 +21,24 @@ class NuevaDireccion extends StatefulWidget {
 }
 
 class _NuevaDireccionState extends State<NuevaDireccion> with TickerProviderStateMixin {
-  TextEditingController nombreCont = new TextEditingController();
-  TextEditingController calleCont = new TextEditingController();
-  TextEditingController numeroCont = new TextEditingController();
-  TextEditingController codigoPostalCont = new TextEditingController();
-  TextEditingController municipioCont = new TextEditingController();
-  TextEditingController estadoCont = new TextEditingController();
-  //final CouldFireStoreService _db= CouldFireStoreService();
+  TextEditingController _nombreCont = new TextEditingController();
+  TextEditingController _calleCont = new TextEditingController();
+  TextEditingController _numeroCont = new TextEditingController();
+  TextEditingController _codigoPostalCont = new TextEditingController();
+  TextEditingController _municipioCont = new TextEditingController();
+  TextEditingController _estadoCont = new TextEditingController();
+  final String _titulo = 'Nueva Dirección'; 
   final _formKey = GlobalKey<FormState>();
-  late GoogleMapController mapController;
+  late GoogleMapController _mapController;
   Set<Marker> _markers = Set();
   late LatLng _center;
-  bool positionLoaded=false;
-  static const String _uid='UE6kbvXbLpFWCVBSzsF2';
+  bool _positionLoaded=false;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    _determinePosition();       
+    _position();       
   }
 
   @override
@@ -41,7 +47,7 @@ class _NuevaDireccionState extends State<NuevaDireccion> with TickerProviderStat
 
   }
 
-_determinePosition() async {
+_position() async {
   bool serviceEnabled;
   LocationPermission permission;
 
@@ -80,100 +86,98 @@ _determinePosition() async {
     _center = LatLng(position.latitude,position.longitude);
     _markers.add(
               Marker(
-                markerId: MarkerId("Nueva Diseccion"),
+                markerId: MarkerId("Nueva Dirección"),
                 position: LatLng(position.latitude,position.longitude)
               )
             );
-            positionLoaded=true;
+            _positionLoaded=true;
   });
 }
 
-_saveNew() async {
-  /*
+_saveNew() {
   GeoPoint geoPoint = new GeoPoint(_center.latitude, _center.longitude); 
-  var data = Direccion.toMapFromControl(_uid, nombreCont, calleCont, numeroCont, codigoPostalCont, municipioCont, estadoCont, geoPoint);
-  var res = await _db.newDireccion(_uid,data);
-    Fluttertoast.showToast(
-        msg: res['mensaje'],
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        timeInSecForIosWeb: 1,
-        backgroundColor: res['estado']==0?Colors.blue:Colors.red,
-        textColor: Colors.white,
-        fontSize: 16.0
-    );
-    if(res['estado']==0){
-      Navigator.pop(context);
-    }*/
+  var datos = Direccion.toMapFromControl(Auth.getUserId()!, 
+                                        _nombreCont,
+                                        _calleCont,
+                                        _numeroCont, 
+                                        _codigoPostalCont,
+                                        _municipioCont, 
+                                        _estadoCont, 
+                                        geoPoint);
+  var res = Firestore.registroDireccion(uid: Auth.getUserId()!, datos: datos);
+  Dialogo.dialogoProgreso(context,
+                          contenido: Text('Guardando ${_nombreCont.text}'),
+                          future: res, 
+                          alTerminar: (resultado){
+                                Fluttertoast.showToast(
+                                msg: 'Datos guardados',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                timeInSecForIosWeb: 1,
+                                backgroundColor: Colors.blueAccent,
+                                textColor: Colors.white,
+                                fontSize: 16.0
+                            );
+                            Navigator.pop(context);
+                          }, 
+                          enError: (resultado){
+                            Fluttertoast.showToast(
+                                msg: 'Error: $resultado',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                timeInSecForIosWeb: 1,
+                                backgroundColor: Colors.blueGrey,
+                                textColor: Colors.white,
+                                fontSize: 16.0
+                            );
+
+                          }, );
+
+
 }
   @override
   Widget build(BuildContext context) {
    return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-          title: Text('Nueva Dirección'),
+          title: Text(_titulo),
           backgroundColor: Colors.blueAccent,
       ),
-      body: SingleChildScrollView(
+      body: _body(),
+      floatingActionButton: FloatingActionButton(
+        onPressed: ()=>{_validaFormulario()},
+        tooltip: 'Guardar',
+        child: const Icon(Icons.save),
+      ),
+    );
+  
+  }
+  _body(){
+    return SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
           child: Center(
             child:Form(
               key:_formKey,
             child: Column(
               children: <Widget>[
-                _formField('Nombre', nombreCont,TextInputType.name,Icons.home),
-                _formField('Calle', calleCont,TextInputType.name,Icons.horizontal_distribute),
-                _formField('Número', numeroCont,TextInputType.number,Icons.tag_sharp),
-                _formField('Código Postal', codigoPostalCont,TextInputType.number,Icons.mail),
-                EstadoMunicipoInput(estadoCont:estadoCont,municipioCont:municipioCont),
+                _formField('Nombre', _nombreCont,TextInputType.name,Icons.home),
+                _formField('Calle', _calleCont,TextInputType.name,Icons.horizontal_distribute),
+                _formField('Número', _numeroCont,TextInputType.number,Icons.tag_sharp),
+                _formField('Código Postal', _codigoPostalCont,TextInputType.number,Icons.mail),
+                EstadoMunicipoInput(estadoCont:_estadoCont,municipioCont:_municipioCont),
                 Divider(),
-                                      ElevatedButton(
-                        child: const Text(
-                          'Posición',
-                          style: TextStyle(
-                            fontSize: 20
-                          ),
-                        ),
-                        style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all<Color>(Colors.blue.shade200),
-                          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16.0)
-                            )
-                          ),
-                        ),
-                        onPressed: (){
-
-                        }
-                      ),
-                SizedBox(height: 20,),
-                positionLoaded?
-                SizedBox(
-                width: MediaQuery.of(context).size.width, // or use fixed size like 200
-                height: MediaQuery.of(context).size.height/1.5,
-                child: GoogleMap(
-                onMapCreated: _onMapCreated,
-                markers: _markers,
-                initialCameraPosition: CameraPosition(
-                  target: _center,            
-                  zoom: 15.0,
-                ),
-            )
-            ):
-                Text('Determinando Ubicacion'),
-
+                _controlUbicacion(),
               ]
             )
           )
         )
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: ()async => {
-          if(_formKey.currentState!.validate()){
-                  //await confirmationDialog(()async=>{await _saveNew()},'Confirmación','¿Guardar dirección ${nombreCont.text}?',context)
-              
-          }else{
-            /*Fluttertoast.showToast(
+      );
+  }
+  _validaFormulario(){
+    if(_formKey.currentState!.validate()){
+      _saveDialog();
+    }else{
+      Fluttertoast.showToast(
                 msg: 'Datos no validos',
                 toastLength: Toast.LENGTH_SHORT,
                 gravity: ToastGravity.BOTTOM,
@@ -181,20 +185,76 @@ _saveNew() async {
                 backgroundColor: Colors.red,
                 textColor: Colors.white,
                 fontSize: 16.0
-            )*/
-          }
-        },
-        tooltip: 'Guardar',
-        child: const Icon(Icons.save),
-      ),
-    );
-  
+            );
+    }
+  }
+  _saveDialog()async{
+      Dialogo.dialogo(
+        context,                                     
+        titulo:Text('Atención'),
+        contenido: Text('¿Guardar ${_nombreCont.text}?'),
+        acciones: [
+        IconButton(icon: Icon(FontAwesomeIcons.check, color: Colors.blueAccent,),
+                  onPressed: (){
+                    Navigator.pop(context);
+                    _saveNew();
+                    },),
+        IconButton(icon: Icon(FontAwesomeIcons.ban,color: Colors.blueGrey),
+                  onPressed: ()=>{Navigator.pop(context)},),
+        ]);
   }
 
-    void _onMapCreated(GoogleMapController controller) {
-    mapController = controller;
+  _controlUbicacion(){
+      return    Tarjeta(color: Colors.white,
+                        contenido: Container(
+                          child:Column(
+                            children: [
+                              ElevatedButton(
+                              child: const Text(
+                                'Cambiar Posición',
+                                style: TextStyle(
+                                  fontSize: 20
+                                ),
+                              ),
+                              style: ButtonStyle(
+                                backgroundColor: MaterialStateProperty.all<Color>(Colors.blue.shade200),
+                                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                  RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16.0)
+                                  )
+                                ),
+                              ),
+                              onPressed: (){
+                              }
+                            ),
+                SizedBox(height: 20,),
+                _positionLoaded?
+                SizedBox(
+                    width: MediaQuery.of(context).size.width, // or use fixed size like 200
+                    height: MediaQuery.of(context).size.height/1.5,
+                    child: GoogleMap(
+                    onMapCreated: _onMapCreated,
+                    markers: _markers,
+                    initialCameraPosition: CameraPosition(
+                      target: _center,            
+                      zoom: 15.0,
+                    ),
+                )
+                )
+                :SizedBox(
+                    width: MediaQuery.of(context).size.width, // or use fixed size like 200
+                    height: MediaQuery.of(context).size.height/1.5,
+                    child: Text('Determinando Ubicación')
+                )
+                            ],
+                          ) 
+                          ,)
+                          ,);
+            
+    }
+  void _onMapCreated(GoogleMapController controller) {
+    _mapController = controller;
   }
-
   _formField(String nombre,TextEditingController controller,TextInputType type,IconData icon ){
     return RoundedIconTextFormField(
                   controller: controller,
@@ -205,7 +265,6 @@ _saveNew() async {
                 );
   
   }
-
   _positonPicker() async {
     /*
     LocationResult result = await Navigator.of(context).push(

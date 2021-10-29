@@ -22,4 +22,11 @@ class Auth {
   static Future<void> cerrarSesion() {
     return FirebaseAuth.instance.signOut();
   }
+
+  static String? getUserEmail() {
+    return FirebaseAuth.instance.currentUser!.email;
+  }
+  static String? getUserId() {
+    return FirebaseAuth.instance.currentUser!.uid;
+  }
 }

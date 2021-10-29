@@ -234,30 +234,7 @@ class _RegistroPantallaState extends State<RegistroPantalla> {
                         ),
                         onPressed: _registrarse
                       ),
-                    ElevatedButton(
-                        child: const Text(
-                          'Iniciar Sesión ',
-                          style: TextStyle(
-                            fontSize: 20
-                          ),
-                        ),
-                        style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all<Color>(Colors.blue.shade200),
-                          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16.0)
-                            )
-                          ),
-                        ),
-                        onPressed: (){
-                        Navigator.pop(context);
-                        Navigator.pushNamed(
-                          context,
-                          InicioSesionPantalla.id
-                        );
 
-                        }
-                      ),
                       const SizedBox(
                         height: 20.0,
                       )

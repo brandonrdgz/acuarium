@@ -1,7 +1,14 @@
 import 'package:acuarium/componentes/control_estado_municipio.dart';
+import 'package:acuarium/componentes/dialogo.dart';
 import 'package:acuarium/componentes/rounded_icon_text_form_field.dart';
+import 'package:acuarium/componentes/tarjeta.dart';
 import 'package:acuarium/modelos/direccion.dart';
+import 'package:acuarium/servicios/firebase/auth.dart';
+import 'package:acuarium/servicios/firebase/firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -14,41 +21,45 @@ class EditarDireccion extends StatefulWidget {
 }
 
 class _EditarDireccionState extends State<EditarDireccion> with TickerProviderStateMixin {
-  TextEditingController nombreCont = new TextEditingController();
-  TextEditingController calleCont = new TextEditingController();
-  TextEditingController numeroCont = new TextEditingController();
-  TextEditingController codigoPostalCont = new TextEditingController();
-  TextEditingController municipioCont = new TextEditingController();
-  TextEditingController estadoCont = new TextEditingController();
-  late final Direccion direccion;
-  //final CouldFireStoreService _db= CouldFireStoreService();
+  TextEditingController _nombreCont = new TextEditingController();
+  TextEditingController _calleCont = new TextEditingController();
+  TextEditingController _numeroCont = new TextEditingController();
+  TextEditingController _codigoPostalCont = new TextEditingController();
+  TextEditingController _municipioCont = new TextEditingController();
+  TextEditingController _estadoCont = new TextEditingController();
+  late  Direccion _direccion;
+  final String _titulo = 'Editando'; 
   final _formKey = GlobalKey<FormState>();
-  late GoogleMapController mapController;
+  late GoogleMapController _mapController;
   Set<Marker> _markers = Set();
   late LatLng _center;
-  bool positionLoaded=false;
-  static const String _uid='UE6kbvXbLpFWCVBSzsF2';
+  bool _positionLoaded=false;
+  bool _direccionRecuperada=false;
 
   init(){
-    direccion = ModalRoute.of(context)!.settings.arguments as Direccion;
-    _center = LatLng(direccion.getLat,direccion.getLng);
+    if(!_direccionRecuperada){
+    _direccion = ModalRoute.of(context)!.settings.arguments as Direccion;
+    _center = LatLng(_direccion.getLat,_direccion.getLng);
     _markers.add(
               Marker(
-                markerId: MarkerId(direccion.getNombre),
-                position: LatLng(direccion.getLat,direccion.getLng)
+                markerId: MarkerId(_direccion.getNombre),
+                position: LatLng(_direccion.getLat,_direccion.getLng)
               )
             );
-    positionLoaded=true;
-    nombreCont.text=direccion.getNombre;
-    calleCont.text=direccion.getCalle;
-    numeroCont.text=direccion.getNumero;
-    codigoPostalCont.text=direccion.getCodigoPostal;
-    estadoCont.text= direccion.getEstado;
-    municipioCont.text=direccion.getMunicipio;
+    _positionLoaded=true;
+    _nombreCont.text=_direccion.getNombre;
+    _calleCont.text=_direccion.getCalle;
+    _numeroCont.text=_direccion.getNumero;
+    _codigoPostalCont.text=_direccion.getCodigoPostal;
+    _estadoCont.text= _direccion.getEstado;
+    _municipioCont.text=_direccion.getMunicipio;
+    _direccionRecuperada=true;
+    }
   }
   @override
   void initState() {
     super.initState();
+    
     
     
   }
@@ -59,7 +70,7 @@ class _EditarDireccionState extends State<EditarDireccion> with TickerProviderSt
 
   }
 
-_determinePosition() async {
+_position() async {
   bool serviceEnabled;
   LocationPermission permission;
 
@@ -102,26 +113,47 @@ _determinePosition() async {
                 position: LatLng(position.latitude,position.longitude)
               )
             );
-            positionLoaded=true;
+            _positionLoaded=true;
   });
 }
 _update() async {
-  /*
-  GeoPoint geoPoint = new GeoPoint(_center.latitude, _center.longitude); 
-  var data = Direccion.toMapFromControl(_uid, nombreCont, calleCont, numeroCont, codigoPostalCont, municipioCont, estadoCont, geoPoint);
-  var res = await _db.updateDireccion(_uid,widget.direccion.getId,data);
-    Fluttertoast.showToast(
-        msg: res['mensaje'],
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        timeInSecForIosWeb: 1,
-        backgroundColor: res['estado']==0?Colors.blue:Colors.red,
-        textColor: Colors.white,
-        fontSize: 16.0
-    );
-    if(res['estado']==0){
-      Navigator.pop(context);
-    }*/
+   GeoPoint geoPoint = new GeoPoint(_center.latitude, _center.longitude); 
+  var datos = Direccion.toMapFromControl(Auth.getUserId()!, 
+                                        _nombreCont,
+                                        _calleCont,
+                                        _numeroCont, 
+                                        _codigoPostalCont,
+                                        _municipioCont, 
+                                        _estadoCont, 
+                                        geoPoint);
+  var res = Firestore.actualizaDireccion(uid: Auth.getUserId()!, rid: _direccion.getId, datos: datos);
+  Dialogo.dialogoProgreso(context,
+                          contenido: Text('Actualizando ${_nombreCont.text}'),
+                          future: res, 
+                          alTerminar: (resultado){
+                                Fluttertoast.showToast(
+                                msg: 'Datos guardados',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                timeInSecForIosWeb: 1,
+                                backgroundColor: Colors.blueAccent,
+                                textColor: Colors.white,
+                                fontSize: 16.0
+                            );
+                            Navigator.pop(context);
+                          }, 
+                          enError: (resultado){
+                            Fluttertoast.showToast(
+                                msg: 'Error: $resultado',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                timeInSecForIosWeb: 1,
+                                backgroundColor: Colors.blueGrey,
+                                textColor: Colors.white,
+                                fontSize: 16.0
+                            );
+
+                          }, );
 }
 
   @override
@@ -130,69 +162,23 @@ _update() async {
    return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-          title: Text(direccion.getNombre),
+          title: Text('$_titulo ${_direccion.getNombre}'),
           backgroundColor: Colors.blueAccent,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
-          child: Center(
-            child:Form(
-              key:_formKey,
-            child: Column(
-              children: <Widget>[
-                _formField('Nombre', nombreCont,TextInputType.name,Icons.home),
-                _formField('Calle', calleCont,TextInputType.name,Icons.horizontal_distribute),
-                _formField('Número', numeroCont,TextInputType.number,Icons.tag_sharp),
-                _formField('Código Postal', codigoPostalCont,TextInputType.number,Icons.mail),
-                EstadoMunicipoInput(estadoCont:estadoCont,municipioCont:municipioCont),
-                Divider(),
-                                     ElevatedButton(
-                        child: const Text(
-                          'Posición',
-                          style: TextStyle(
-                            fontSize: 20
-                          ),
-                        ),
-                        style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all<Color>(Colors.blue.shade200),
-                          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16.0)
-                            )
-                          ),
-                        ),
-                        onPressed: (){
-
-                        }
-                      ),
-                SizedBox(height: 20,),
-                positionLoaded?
-                SizedBox(
-                width: MediaQuery.of(context).size.width, // or use fixed size like 200
-                height: MediaQuery.of(context).size.height/1.5,
-                child: GoogleMap(
-                onMapCreated: _onMapCreated,
-                markers: _markers,
-                initialCameraPosition: CameraPosition(
-                  target: _center,            
-                  zoom: 15.0,
-                ),
-            )
-            ):
-                Text('Determinando Ubicacion'),
-
-              ]
-            )
-            )
-          )
-      ),
+      body: _body(),
       floatingActionButton: FloatingActionButton(
-        onPressed: ()async => {
-          if(_formKey.currentState!.validate()){
-                  //await confirmationDialog(()async=>{await _update()()},'Confirmación','¿Actualizar dirección ${widget.direccion.getNombre}?',context)
-                
-          }else{
-            /*Fluttertoast.showToast(
+        onPressed: ()=>{_validaFormulario()},
+        tooltip: 'Guardar',
+        child: const Icon(Icons.save),
+      ),
+    );
+  
+  }
+  _validaFormulario(){
+    if(_formKey.currentState!.validate()){
+      _updateDialog();
+    }else{
+      Fluttertoast.showToast(
                 msg: 'Datos no validos',
                 toastLength: Toast.LENGTH_SHORT,
                 gravity: ToastGravity.BOTTOM,
@@ -200,18 +186,97 @@ _update() async {
                 backgroundColor: Colors.red,
                 textColor: Colors.white,
                 fontSize: 16.0
-            )*/
-          }
-        },
-        tooltip: 'Guardar',
-        child: const Icon(Icons.save),
-      ),
-    );
-  
+            );
+    }
+  }
+    _updateDialog()async{
+      Dialogo.dialogo(
+        context,                                     
+        titulo:Text('Atención'),
+        contenido: Text('¿Actualizar ${_nombreCont.text}?'),
+        acciones: [
+        IconButton(icon: Icon(FontAwesomeIcons.check, color: Colors.blueAccent,),
+                  onPressed: (){
+                    Navigator.pop(context);
+                    _update();
+                    },),
+        IconButton(icon: Icon(FontAwesomeIcons.ban,color: Colors.blueGrey),
+                  onPressed: ()=>{Navigator.pop(context)},),
+        ]);
+  }
+  _body(){
+    return SingleChildScrollView(
+        padding: const EdgeInsets.all(20.0),
+          child: Center(
+            child:Form(
+              key:_formKey,
+            child: Column(
+              children: <Widget>[
+                _formField('Nombre', _nombreCont,TextInputType.name,Icons.home),
+                _formField('Calle', _calleCont,TextInputType.name,Icons.horizontal_distribute),
+                _formField('Número', _numeroCont,TextInputType.number,Icons.tag_sharp),
+                _formField('Código Postal', _codigoPostalCont,TextInputType.number,Icons.mail),
+                EstadoMunicipoInput(estadoCont:_estadoCont,municipioCont:_municipioCont),
+                Divider(),
+                _controlUbicacion(),
+              ]
+            )
+            )
+          )
+      );
   }
 
+    _controlUbicacion(){
+      return    Tarjeta(color: Colors.white,
+                        contenido: Container(
+                          child:Column(
+                            children: [
+                              ElevatedButton(
+                              child: const Text(
+                                'Cambiar Posición',
+                                style: TextStyle(
+                                  fontSize: 20
+                                ),
+                              ),
+                              style: ButtonStyle(
+                                backgroundColor: MaterialStateProperty.all<Color>(Colors.blue.shade200),
+                                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                  RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16.0)
+                                  )
+                                ),
+                              ),
+                              onPressed: (){
+                              }
+                            ),
+                SizedBox(height: 20,),
+                _positionLoaded?
+                SizedBox(
+                    width: MediaQuery.of(context).size.width, // or use fixed size like 200
+                    height: MediaQuery.of(context).size.height/1.5,
+                    child: GoogleMap(
+                    onMapCreated: _onMapCreated,
+                    markers: _markers,
+                    initialCameraPosition: CameraPosition(
+                      target: _center,            
+                      zoom: 15.0,
+                    ),
+                )
+                )
+                :SizedBox(
+                    width: MediaQuery.of(context).size.width, // or use fixed size like 200
+                    height: MediaQuery.of(context).size.height/1.5,
+                    child: Text('Determinando Ubicación')
+                )
+                            ],
+                          ) 
+                          ,)
+                          ,);
+            
+    }
+
     void _onMapCreated(GoogleMapController controller) {
-    mapController = controller;
+    _mapController = controller;
   }
 
   _formField(String nombre,TextEditingController controller,TextInputType type,IconData icon ){
