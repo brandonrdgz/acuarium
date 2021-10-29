@@ -48,7 +48,6 @@ class RoundedIconTextFormField extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.all(8.0),
       child: TextFormField(
-        maxLines: maxLines,
         enabled: enabled,
         textAlign: TextAlign.center,
         decoration: InputDecoration(

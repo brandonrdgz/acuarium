@@ -1,9 +1,13 @@
+import 'package:acuarium/componentes/dialogo.dart';
 import 'package:acuarium/componentes/menu.dart';
 import 'package:acuarium/pantallas/cliente/carrito_pantalla.dart';
 import 'package:acuarium/pantallas/cliente/listado_direcciones_pantalla.dart';
 import 'package:acuarium/pantallas/cliente/listado_peces_venta_cliente_pantalla.dart';
 import 'package:acuarium/pantallas/cliente/listado_pedidos_cliente_pantalla.dart';
 import 'package:acuarium/pantallas/cliente/listado_tanques_pantalla.dart';
+import 'package:acuarium/pantallas/cliente/pagina_principal_cliente_pantalla.dart';
+import 'package:acuarium/pantallas/inicio_sesion_pantalla.dart';
+import 'package:acuarium/servicios/firebase/auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -86,6 +90,21 @@ class MenuClienteDrawer extends StatelessWidget {
         ListTile(
           leading: Icon(FontAwesomeIcons.signOutAlt),
           title: Text('Salir'),
+          onTap: () {
+            Dialogo.dialogoProgreso(
+              context,
+              contenido: Text('Cerrando sesión'),
+              future: Auth.cerrarSesion(),
+              alTerminar: (valor) {
+                Navigator.popUntil(context, ModalRoute.withName(PaginaPrincipalClientePantalla.id));
+                Navigator.pop(context);
+                Navigator.pushNamed(context, InicioSesionPantalla.id);
+              },
+              enError: (error) {
+
+              }
+            );
+          },
         ),
       ],
     );
