@@ -342,22 +342,39 @@ class _RegistroPantallaState extends State<RegistroPantalla> {
   }
 
   void _muestraDialogoProgreso() async {
+    String uidUsuario = '';
+
     Future future = Auth.registrar(
       correo: _correo,
       contrasenia: _contrasenia
     )
     .then((UserCredential userCredential) {
-      return Firestore.registroUsuario(
-        correo: _correo,
-        tipo: _esNegocio ? 'Negocio' : 'Cliente'
-      );
+      if (userCredential.user != null) {
+        uidUsuario = userCredential.user!.uid;
+        print('Registro: UID de usuario: $uidUsuario');
+
+        return Firestore.registroUsuario(
+          uid: uidUsuario,
+          correo: _correo,
+          tipo: _esNegocio ? 'Negocio' : 'Cliente'
+        );
+      }
+      else {
+        throw Exception('Usuario no válido');
+      }
     })
     .then((value) {
-      return Firestore.registroDatosUsuario(
-        correo: _correo,
-        nombre: _nombre,
-        fechaNac: _fechaNac
-      );
+      if (uidUsuario.isNotEmpty) {
+        return Firestore.registroDatosUsuario(
+          uid: uidUsuario,
+          correo: _correo,
+          nombre: _nombre,
+          fechaNac: _fechaNac
+        );
+      }
+      else {
+        throw Exception('Usuario no válido');
+      }
     });
 
     await Dialogo.dialogoProgreso(
@@ -366,10 +383,16 @@ class _RegistroPantallaState extends State<RegistroPantalla> {
       contenido: const Text('Registrando. Espere por favor'),
       future: _esNegocio ?
         future.then((value) {
-          return Firestore.registroDatosInicialesNegocio(
-            correo: _correo,
-            nombreNegocio: _nombreNegocio
-          );
+          if (uidUsuario.isNotEmpty) {
+            return Firestore.registroDatosInicialesNegocio(
+              uid: uidUsuario,
+              correo: _correo,
+              nombreNegocio: _nombreNegocio
+            );
+          }
+          else {
+            throw Exception('Usuario no válido');
+          }
         }) :
         future,
       alTerminar: (valor) {
@@ -391,10 +414,11 @@ class _RegistroPantallaState extends State<RegistroPantalla> {
         );
       },
       enError: (error) {
-        print(error);
+        String msjError = Constantes.mensjeError(error);
+
         _muestraDialogoResultado(
           titulo: const Icon(Icons.close, color: Colors.red),
-          contenido: const Text('Ocurrió un error durante el registro'),
+          contenido: Text(msjError),
           alAceptar: () {
             Navigator.pop(context);
           }
