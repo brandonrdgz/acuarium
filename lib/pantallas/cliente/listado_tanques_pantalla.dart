@@ -6,7 +6,11 @@ import 'package:acuarium/pantallas/cliente/agregar_tanque_pantalla.dart';
 import 'package:acuarium/pantallas/cliente/editar_tanque_pantalla.dart';
 import 'package:acuarium/pantallas/cliente/informacion_tanque_pantalla.dart';
 import 'package:acuarium/pantallas/cliente/menu_cliente_drawer.dart';
+import 'package:acuarium/servicios/firebase/auth.dart';
+import 'package:acuarium/servicios/firebase/firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class Tanques extends StatefulWidget {
@@ -20,32 +24,20 @@ class Tanques extends StatefulWidget {
 
 
 class  TanquesState extends State <Tanques> {
-  TextEditingController searchController= new TextEditingController();
-  List<Tanque> items=[];
+  TextEditingController _searchController= new TextEditingController();
+  List<Tanque> _items=[];
+  List<Tanque> _filterItems=[];
+  static final String _title ='Tanques';
+  bool _isSearching=false;
 
     @override
   void initState() {
       super.initState();
-      for(var i=0;i<4;i++){
-        Tanque t= new Tanque();
-        t.setId='$i';
-        t.setIdCliente='$i';
-        t.setIdModulo='$i';
-        t.setAlto=5;
-        t.setAncho=5;
-        t.setProfundo=5;
-        t.setLitros=125;
-        t.setNombre='Tanque$i';
-        t.setFechaMontaje='23/10/2021';
-        t.setTemperatura=20;
-        t.setGaleria=['images/asset1.jpg'];
-        items.add(t);
-      }
   }
 @override
   void dispose(){
     super.dispose();
-    searchController.dispose();
+    _searchController.dispose();
 
   }
 
@@ -54,17 +46,19 @@ class  TanquesState extends State <Tanques> {
     return SafeArea(child: Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-          title: Text('Tanques'),
+          title: Text(_title),
           backgroundColor: Colors.blueAccent,
       ),
             drawer: MenuClienteDrawer(
-        nombreEncabezado: 'Cliente',
-        correoEncabezado: 'cliente@cliente.com',
+        nombreEncabezado: Auth.getUserId()!,
+        correoEncabezado: Auth.getUserEmail()!,
       ),
       body: Column(children: [
             _searchField(),
             Divider(),
-            Flexible(child: _listBuilder())
+            Flexible(
+              child:_isSearching?_listFromFilter():_listFromStream()            
+            )
             ],
           ),
         floatingActionButton: FloatingActionButton(
@@ -84,22 +78,38 @@ class  TanquesState extends State <Tanques> {
                     RoundedIconTextFormField(
                       validator: (val) => val!.isEmpty ?' vacio':null,
                       labelText: 'Búsqueda',
-                      controller: searchController,
+                      controller: _searchController,
                       prefixIcon:Icons.search,
                       keyboardType: TextInputType.text,
                       onChanged: (string) {
                           setState(() {
-                            //searchControler.text.isNotEmpty?isSearching=true:isSearching=false;
-                          });
-                        },
+                            _searchController.text.isNotEmpty?_isSearching=true:_isSearching=false;
+                            if(_isSearching){
+                              _filterItems.clear();
+                              _items.forEach((element) {
+                                if(element.getNombre.startsWith(_searchController.text)){
+                                  _filterItems.add(element);
+                                }
+                               });
+                          }
+                        });
+                      }
                     ),
                     )
                   ]);               
 }
+  _listFromFilter(){
+        if (_filterItems.length==0) {
+          return Text('Sin resultados');
+        }else{
+          return _listBuilder(_filterItems);
+        }
+        
+  }
 
-  /*_listFromStream(){
+  _listFromStream(){
   return  StreamBuilder(
-  stream: isSearching?_db.getFiltraDirecciones(_uid,searchControler.text).snapshots():_db.getDirecciones(_uid).snapshots(),
+  stream: Firestore.listaTanques(uid: Auth.getUserId()!),
   builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (snapshot.hasError) {
           return Text('Ocurrio un error');
@@ -113,28 +123,28 @@ class  TanquesState extends State <Tanques> {
           return Text('Sin datos');
         }
 
-        items.clear();
+        _items.clear();
         snapshot.data!.docs.forEach((element) {
-          items.add(Direccion.fromSnapshot(element));
+          _items.add(Tanque.fromSnapshot(element));
         });
-        return _listBuilder();
+        
+        return _listBuilder(_items);
   });
 
-}*/
+}
 
-  _listBuilder(){
+  _listBuilder(List<Tanque> items){
    return ListView.builder(
               itemCount: items.length,
               padding: EdgeInsets.only(top:12.0),
               itemBuilder: (context, position){
                 return 
-                 Tarjeta(contenido: _CardBody(items[position]),color:Colors.white);
-               
+                 Tarjeta(contenido: _cardBody(items[position]),color:Colors.white);
               }
               );
 }
 
- _CardBody(Tanque tanque){
+  _cardBody(Tanque tanque){
    return Column(
                     children: [
                       SizedBox(height: 20,),
@@ -142,9 +152,7 @@ class  TanquesState extends State <Tanques> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Flexible(
-                            child: Image(
-                              image: AssetImage(tanque.getGaleria[0]),
-                            )
+                            child: tanque.getCardImgs()
                           )
                           ]
                     ),
@@ -161,13 +169,16 @@ class  TanquesState extends State <Tanques> {
                         ),
                         IconButton(
                           onPressed: ()=>{
-                                        Dialogo.dialogo(
+                            Dialogo.dialogo(
                                           context,                                     
                                           titulo:Text('Atención'),
                                           contenido: Text('¿Eliminar ${tanque.getNombre}?'),
                                           acciones: [
                                             IconButton(icon: Icon(FontAwesomeIcons.check, color: Colors.blueAccent,),
-                                                        onPressed: ()=>{Navigator.pop(context)},),
+                                                        onPressed: (){
+                                                        Navigator.pop(context);
+                                                        _confirmaEliminacion(tanque);
+                                                        },),
                                             IconButton(icon: Icon(FontAwesomeIcons.ban,color: Colors.blueGrey),
                                                         onPressed: ()=>{Navigator.pop(context)},),
                                           ])
@@ -185,6 +196,36 @@ class  TanquesState extends State <Tanques> {
 
 
  }
+
+  _confirmaEliminacion(Tanque t){
+  var res = Firestore.eliminaTanque(uid: Auth.getUserId()!, rid: t.getId);
+  Dialogo.dialogoProgreso(context,
+                          contenido: Text('Eliminando ${t.getNombre}'),
+                          future: res, 
+                          alTerminar: (resultado){
+                                Fluttertoast.showToast(
+                                msg: 'Datos Borrados',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                timeInSecForIosWeb: 1,
+                                backgroundColor: Colors.blueAccent,
+                                textColor: Colors.white,
+                                fontSize: 16.0
+                            );
+                          }, 
+                          enError: (resultado){
+                            Fluttertoast.showToast(
+                                msg: 'Error: $resultado',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                timeInSecForIosWeb: 1,
+                                backgroundColor: Colors.blueGrey,
+                                textColor: Colors.white,
+                                fontSize: 16.0
+                            );
+
+                          }, );
+  }
 
   _new(BuildContext context) {
     Navigator.pushNamed(context, TanqueNuevo.id);

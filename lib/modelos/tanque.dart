@@ -12,7 +12,7 @@ class Tanque{
   double _profundo=0.0;
   double _temperatura=0.0;
   String _fechaMontaje='';
-  List<String> _galeria=[];
+  List<dynamic> _galeria=[];
 
 
   Tanque();
@@ -27,7 +27,7 @@ class Tanque{
   double get getProfundo => _profundo;
   double get getTemperatura => _temperatura;
   String get getFechaMontaje => _fechaMontaje;
-  List<String> get getGaleria => _galeria;
+  List<dynamic> get getGaleria => _galeria;
 
   set setId(String id) => _id=id;
   set setIdCliente(String id) => _idCliente=id;
@@ -39,7 +39,7 @@ class Tanque{
   set setProfundo(double p) => _profundo=p;
   set setTemperatura(double p) => _temperatura=p;
   set setFechaMontaje(String f) => _fechaMontaje=f;
-  set setGaleria(List<String> l) => _galeria=l;
+  set setGaleria(List<dynamic> l) => _galeria=l;
 
 
 
@@ -47,15 +47,27 @@ class Tanque{
     List<Image> images=[];
     if(_galeria.length>0){
       _galeria.forEach((element) { 
-      //images.add(Image.network(element));
-      images.add(Image(image: AssetImage(element)));
+      images.add(Image.network(element['imgUrl']!));
+      
     });
+    }else{
+      images.add(Image(image: AssetImage('images/acuarium.png')));
     }
     return images;
     }
+
+  Image getCardImgs() {
+    if(_galeria.length>0){
+      var entry = _galeria[0];
+      return Image.network(entry['imgUrl']!);
+    }else{
+      return Image(image: AssetImage('images/acuarium.png'));
+    }
+    }
   
   
-  static Map<String, dynamic> toMapFromControl(String idCliente,
+  static Map<String, dynamic> toMapFromControl(
+                                        String idCliente,
                                         String idModulo,
                                         TextEditingController nombreCont,
                                         TextEditingController litrosCont,
@@ -63,7 +75,8 @@ class Tanque{
                                         TextEditingController anchoCont,
                                         TextEditingController profundoCont,
                                         TextEditingController temperaturaCont,
-                                        TextEditingController fechaMontajeCont){
+                                        TextEditingController fechaMontajeCont,
+                                        List<Map<String, String>> imgs){
         return {
           'idCliente':idCliente,
           'idModulo':idModulo,
@@ -73,7 +86,8 @@ class Tanque{
           'ancho':anchoCont.text,
           'profundo':profundoCont.text,
           'temperatura':temperaturaCont.text,
-          'fechaMontaje':fechaMontajeCont.text
+          'fechaMontaje':fechaMontajeCont.text,
+          'imagenes':imgs
             };
   } 
 
@@ -88,7 +102,7 @@ class Tanque{
     this._profundo=obj['profundo'];
     this._temperatura=obj['temperatura'];
     this._fechaMontaje=obj['fechaMontaje'];
-    this._galeria=obj['galeria'];
+    this._galeria=obj['imagenes'];
   }
 
     Tanque.fromSnapshot(DocumentSnapshot obj){      
@@ -96,13 +110,13 @@ class Tanque{
     this._idCliente=obj.get('idCliente');
     this._nombre=obj.get('nombre');
     this._idModulo=obj.get('idModulo');
-    this._litros=obj.get('litros');
-    this._alto=obj.get('alto');
-    this._ancho=obj.get('ancho');
-    this._temperatura=obj.get('temperatura');
-    this._profundo=obj.get('profundo');
+    this._litros=double.parse(obj.get('litros'));
+    this._alto=double.parse(obj.get('alto'));
+    this._ancho=double.parse(obj.get('ancho'));
+    this._temperatura=double.parse(obj.get('temperatura'));
+    this._profundo=double.parse(obj.get('profundo'));
     this._fechaMontaje=obj.get('fechaMontaje');
-    this._galeria=obj.get('galeria');
+    this._galeria=obj.get('imagenes');
 
   }
 

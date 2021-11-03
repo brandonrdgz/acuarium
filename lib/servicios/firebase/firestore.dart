@@ -5,6 +5,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class Firestore {
   static const String _coleccionDirecciones= 'direcciones';
   static const String _coleccionUsuarios= 'usuarios';
+  static const String _coleccionTanques= 'tanques';
+  static const String _coleccionModulos= 'modulos';
   static const String _campoNombre= 'nombre';
   static Future<DocumentReference<Object?>> registroUsuario({required String correo, required String tipo}) {
     CollectionReference usuarios = FirebaseFirestore.instance.collection('usuarios');
@@ -92,6 +94,50 @@ class Firestore {
 
   }
 
+        static Stream<QuerySnapshot<Map<String, dynamic>>> listaTanques({
+    required String uid,
+  }) {
+    return  FirebaseFirestore.instance.collection(_coleccionUsuarios).doc(uid).collection(_coleccionTanques).snapshots();
+    
+  }
+    static Future<void> eliminaTanque({
+    required String uid,
+    required String rid,
+  }) {
+    return FirebaseFirestore.instance.collection(_coleccionUsuarios)
+                              .doc(uid)
+                              .collection(_coleccionTanques)
+                              .doc(rid)
+                              .delete();
 
+  }
+
+  static Stream<DocumentSnapshot<Map<String, dynamic>>> datosModulo({
+    required String mid,
+  }) {
+    return  FirebaseFirestore.instance.collection(_coleccionModulos).doc(mid).snapshots();
+    
+  }
+
+  static Future<DocumentReference<Object?>> registroTanque({
+    required String uid,
+    required Map<String, dynamic> datos,
+  }) {
+    return FirebaseFirestore.instance.collection(_coleccionUsuarios)
+                              .doc(uid)
+                              .collection(_coleccionTanques)
+                              .add(datos);
+  }
+
+    static Future<void> intervaloAlimentacion({
+    required String mid,
+    required double interValoHoras,
+  }) {
+    return FirebaseFirestore.instance.collection(_coleccionModulos)
+                              .doc(mid)
+                              .update({
+                                'intervaloAlimentacion':interValoHoras,
+                              });
+  }
 
 }

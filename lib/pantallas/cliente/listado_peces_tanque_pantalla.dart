@@ -25,16 +25,6 @@ TextEditingController searchController= new TextEditingController();
     @override
   void initState() {
       super.initState();
-      for(var i=0;i<4;i++){
-        PezDeTanque t= new PezDeTanque();
-        t.setId='$i';
-        t.setIdTanque='$i';
-        t.setNumero=i;
-        t.setCuidados='Cuidados';
-        t.setNombre='Pez$i';
-        t.setImagen='images/asset2.jpg';
-        items.add(t);
-      }
   }
 
 

@@ -1,5 +1,8 @@
 
 import 'package:acuarium/componentes/dialogo.dart';
+import 'package:acuarium/componentes/etiquetas.dart';
+import 'package:acuarium/componentes/fish_list.dart';
+import 'package:acuarium/componentes/module_reader.dart';
 import 'package:acuarium/modelos/tanque.dart';
 import 'package:acuarium/pantallas/cliente/editar_tanque_pantalla.dart';
 import 'package:acuarium/pantallas/cliente/listado_peces_tanque_pantalla.dart';
@@ -17,8 +20,9 @@ class TanqueVista extends StatefulWidget {
 }
 
 class _TanqueVistaState extends State<TanqueVista> {
-  late final Tanque tanque ;
-  //final CouldFireStoreService _db= CouldFireStoreService();
+  late final Tanque _tanque ;
+  
+  TextEditingController _moduloCont = new TextEditingController();
 
       @override
   void initState() {
@@ -29,11 +33,11 @@ class _TanqueVistaState extends State<TanqueVista> {
   
   @override
   Widget build(BuildContext context) {
-    tanque = ModalRoute.of(context)!.settings.arguments as Tanque;
+    _tanque = ModalRoute.of(context)!.settings.arguments as Tanque;
     return SafeArea(child: Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-          title: Text(tanque.getNombre),
+          title: Text(_tanque.getNombre),
           backgroundColor: Colors.blueAccent,
       ),
       body: SingleChildScrollView(
@@ -41,51 +45,29 @@ class _TanqueVistaState extends State<TanqueVista> {
             children: [       
                 CarouselSlider(
                 options: CarouselOptions(height: 200.0,autoPlay: true),
-                items: tanque.getGaleriaImgs(),
+                items: _tanque.getGaleriaImgs(),
               ),
               Container(
                 margin: EdgeInsets.all(10),
                 child: Column(
                   children: [
-                  _iconLabel(Icon(FontAwesomeIcons.infoCircle, color: Colors.blueAccent),' Datos'),
-                  _label('Dimensiones', '${tanque.getAlto}cm ${tanque.getAncho}cm ${tanque.getProfundo}cm'),
-                  _label('Litros', tanque.getLitros),
-                  _label('Temperatura ideal','${tanque.getTemperatura}° c'),
-                  _label('Fecha Montaje', tanque.getFechaMontaje),                  
+                  IconLabel(icon:Icon(FontAwesomeIcons.infoCircle, color: Colors.blueAccent),text: ' Datos'),
+                  TextLabel(label: 'Dimensiones',text: '${_tanque.getAlto}cm ${_tanque.getAncho}cm ${_tanque.getProfundo}cm'),
+                  TextLabel(label:'Litros', text:'${_tanque.getLitros}'),
+                  TextLabel(label:'Temperatura ideal',text:'${_tanque.getTemperatura}° c'),
+                  TextLabel(label:'Fecha Montaje', text:_tanque.getFechaMontaje),                  
                   Divider(thickness: 2.0,),
-                  _iconLabel(Icon(FontAwesomeIcons.microchip, color: Colors.blueAccent),' Modulo'),
-                  _label('Temperatura','20°c' ),                
-                  _label('Ultima Lectura', '23/10/2021 02:20p.m.'),
-                  _label('Alimentando cada','5 horas' ),
-                  _label('Ultima comida', '23/10/2021 02:20p.m.'),
-                  _label('Estado', 'Funcionando'),
+                  ModuleReader(moduloCont: _moduloCont,readAv: false,),
                   Divider(thickness: 2.0,),
-                  _iconLabel(Icon(FontAwesomeIcons.fish, color: Colors.blueAccent),' Peces'),
-                  _label('Total de peces','20' ),
-                  _label('Especies', '5'),
+                  FishList(idTanque: _tanque.getId),
 
                   ],
                 ),
               )
+              
 
 
-            //_moduleBannerFromStream(),   
-            /*Card(
-              child: Column(
-                children: [
-                  Text('Peces'),
-                  Flexible(child: _listFromStream()),
-                  TextButton(onPressed:()async=>{},                  
-                  style: TextButton.styleFrom(
-                          primary: Colors.white,
-                          backgroundColor: Colors.blueAccent
-                        ),
-                  child: Text("Ver lista", style: 
-                  TextStyle( fontWeight: FontWeight.bold, fontSize:18.0 ))
-                ),
-                ],
-              )
-            )*/             
+
             ]
         ),
       ),      
@@ -106,7 +88,7 @@ class _TanqueVistaState extends State<TanqueVista> {
                 SpeedDialChild(
                 child: Icon(Icons.edit, color: Colors.white),
                 backgroundColor: Colors.blueAccent,
-                onTap: () { Navigator.pushNamed(context, TanqueEditar.id,arguments:tanque); },
+                onTap: () { Navigator.pushNamed(context, TanqueEditar.id,arguments:_tanque); },
                 label: 'Editar tanque',
                 labelStyle: TextStyle(
                     fontWeight: FontWeight.w500,
@@ -120,7 +102,7 @@ class _TanqueVistaState extends State<TanqueVista> {
                                         Dialogo.dialogo(
                                           context,                                     
                                           titulo:Text('Atención'),
-                                          contenido: Text('¿Eliminar ${tanque.getNombre}?'),
+                                          contenido: Text('¿Eliminar ${_tanque.getNombre}?'),
                                           acciones: [
                                             IconButton(icon: Icon(FontAwesomeIcons.check, color: Colors.blueAccent,),
                                                         onPressed: ()=>{Navigator.pop(context)},),
@@ -139,7 +121,7 @@ class _TanqueVistaState extends State<TanqueVista> {
                 child: Icon(FontAwesomeIcons.leaf, color: Colors.white),
                 backgroundColor: Colors.blueAccent,
                 onTap: () {
-                  Navigator.pushNamed(context, PecesTanque.id,arguments:tanque); 
+                  Navigator.pushNamed(context, PecesTanque.id,arguments:_tanque); 
                 },
                 label: 'Administrar peces',
                 labelStyle: TextStyle(
@@ -151,151 +133,5 @@ class _TanqueVistaState extends State<TanqueVista> {
         );
   }
 
-  /*_moduleBannerFromStream(){
-  return  StreamBuilder(
-  stream: _db.getModuleRef(widget.tanque.getIdModulo).snapshots(),
-  builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-        if (snapshot.hasError) {
-          return Card(child:Column(
-            children: [
-              Text('Datos del modulo'),
-              Divider(),
-              Text('Ocurrio un error'),
-            ],
-          ));
-        }
-
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Card(child:Column(
-            children: [
-              Text('Datos del modulo'),
-              Divider(),
-              Text('Cargando datos'),
-            ],
-          ));
-        }
-
-        if (snapshot.data!.exists) {
-          return Card(child:Column(
-            children: [
-              Text('Datos del modulo'),
-              Divider(),
-              Text('Sin datos'),
-            ],
-          ));
-        }
-        return  Card(
-          child: Column(
-            children: [
-              Text('Datos del modulo'),
-              Divider(),
-              _label('Temperatura', '${snapshot.data!.get('temp')}°C'),
-              _label('TSS', '${snapshot.data!.get('tss')}mg/l'),  
-            ],
-          ),
-        );
-  });
-
-}*/
-
- /* _listFromStream(){
-  return  StreamBuilder(
-  stream: _db.getPecesdeTanque(widget.tanque.getidCliente,widget.tanque.getId).snapshots(),
-  builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-        if (snapshot.hasError) {
-          return Text('Ocurrio un error');
-        }
-
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Text('Cargando datos');
-        }
-
-        if (snapshot.data!.docs.isEmpty) {
-          return Text('Sin datos');
-        }
-
-        List<Pez> items = [];
-        snapshot.data!.docs.forEach((element) {
-          items.add(Pez.fromSnapshot(element));
-        });
-        return _listBuilder(items);
-  });
-
-}*/
-
-/*  _listBuilder( List<Pez> items){
-   return ListView.builder(
-              itemCount: items.length,
-              padding: EdgeInsets.only(top:12.0),
-              itemBuilder: (context, position){
-                return Column(
-                  children:<Widget> [
-                    Divider(height: 7.0,),
-                    Row(children: <Widget>[
-                      Expanded(
-                        child: ListTile(
-                          title: Text('${items[position].getNombre}',                      
-                          style:TextStyle(color: Colors.black,fontSize: 21.0)),
-                          subtitle: Text('${items[position].getNumero}',
-                          style:TextStyle(color: Colors.black,fontSize: 12.0)),
-                          leading: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                            CircleAvatar(
-                              backgroundColor: Colors.blueAccent,
-                              radius: 17.0,
-                              child: Text('${position+1}',
-                          style:TextStyle(color: Colors.white,fontSize: 21.0)),
-                          )
-                          ],),
-                        )
-                        ),
-                    ],)
-                  ],
-                );
-              }
-              );
-}
-*/
  
-  _edit(BuildContext context, Tanque tanque) async{
-   //await Navigator.push(context, MaterialPageRoute(builder: (context) => DireccionNE(direccion:dir),));
-  }
-
-  Row _iconLabel(Icon icon, String campo){
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.start,
-    children: [
-      Flexible(
-        child:icon,
-      ),
-      Flexible(
-        child:
-          Text("$campo: ",
-                      style: TextStyle( fontWeight: FontWeight.bold, fontSize:20.0 ) 
-              )
-      ),
-    ]
-  );                  
-}
-
-  Row _label( String campo,  val){
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.start,
-    children: [
-      Flexible(
-        child:
-          Text("$campo: ",
-                      style: TextStyle( fontWeight: FontWeight.bold, fontSize:18.0 ) 
-              ),
-      ),
-      Flexible(
-        child:
-          Text("$val",
-                      style: TextStyle( fontWeight: FontWeight.normal, fontSize:16.0 ) 
-              ),
-      ),
-    ]
-  );                  
-}
 }

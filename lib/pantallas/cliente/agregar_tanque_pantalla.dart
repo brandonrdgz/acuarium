@@ -1,6 +1,16 @@
+import 'dart:io';
+
+import 'package:acuarium/componentes/dialogo.dart';
+import 'package:acuarium/componentes/galery_picker.dart';
+import 'package:acuarium/componentes/module_reader.dart';
 import 'package:acuarium/componentes/rounded_icon_text_form_field.dart';
-import 'package:carousel_slider/carousel_slider.dart';
+import 'package:acuarium/modelos/tanque.dart';
+import 'package:acuarium/servicios/firebase/auth.dart';
+import 'package:acuarium/servicios/firebase/firestore.dart';
+import 'package:acuarium/servicios/firebase/storage.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class TanqueNuevo extends StatefulWidget {
@@ -12,21 +22,25 @@ class TanqueNuevo extends StatefulWidget {
 }
 
 class _TanqueNuevoState extends State<TanqueNuevo> {
-  List<Image> images=[Image(
-                            image: AssetImage('images/acuarium.png'),
-                            )];
-  TextEditingController nombreCont = new TextEditingController();
-  TextEditingController litrosCont = new TextEditingController();
-  TextEditingController altoCont = new TextEditingController();
-  TextEditingController anchoCont = new TextEditingController();
-  TextEditingController profundoCont = new TextEditingController();
-  TextEditingController fechaCont = new TextEditingController();
-  TextEditingController moduloCont = new TextEditingController();
-  TextEditingController tempCont = new TextEditingController();
+  TextEditingController _nombreCont = new TextEditingController();
+  TextEditingController _litrosCont = new TextEditingController();
+  TextEditingController _altoCont = new TextEditingController();
+  TextEditingController _anchoCont = new TextEditingController();
+  TextEditingController _profundoCont = new TextEditingController();
+  TextEditingController _fechaCont = new TextEditingController();
+  TextEditingController _moduloCont = new TextEditingController();
+  TextEditingController _tempCont = new TextEditingController();
+  TextEditingController _intAlimCont = new TextEditingController();
+  final String _title='Nuevo Tanque';
+  final _formKey = GlobalKey<FormState>();
+  List<Image> _images=[];
+  List<File> _files=[];
+  late DateTime _ultFechaSeleccionada;
 
         @override
   void initState() {
       super.initState();
+      _ultFechaSeleccionada = DateTime(DateTime.now().year - 15);
 
   }
   @override
@@ -35,24 +49,23 @@ class _TanqueNuevoState extends State<TanqueNuevo> {
             Scaffold(
                     resizeToAvoidBottomInset: true,
             appBar: AppBar(
-                title: Text('Nuevo Tanque'),
+                title: Text(_title),
                 backgroundColor: Colors.blueAccent,
             ),
             body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child:  Column(
               children: <Widget>[
-                _galeryPicker(),
+                GaleryPicker(images: _images,files:_files),
                 Divider(thickness: 1.5,),
                 _form(),
                 Divider(thickness: 1.5,),
-                _module()
+                ModuleReader(moduloCont: _moduloCont,readAv: true,),
                ]
         )
       ),
-      
               floatingActionButton: FloatingActionButton(
-              onPressed: () => {},
+              onPressed: () => { _validaFormulario()},
               tooltip: 'Nuevo',
               child: const Icon(Icons.save),
             ),
@@ -62,48 +75,24 @@ class _TanqueNuevoState extends State<TanqueNuevo> {
   _form(){
     return  
               Form(
+                key:_formKey,
                 child:
                 Container(
                   child: Column(
                   children: [
-                _formField('Nombre', nombreCont,TextInputType.name,FontAwesomeIcons.leaf),
-                _formField('Litros', litrosCont,TextInputType.number,Icons.water_outlined),
-                _formField('Alto', altoCont,TextInputType.number,FontAwesomeIcons.rulerVertical),
-                _formField('Ancho', anchoCont,TextInputType.number,FontAwesomeIcons.rulerHorizontal),
-                _formField('Largo', profundoCont,TextInputType.number,FontAwesomeIcons.rulerCombined),
-                _formField('Temperatura ideal',tempCont,TextInputType.number,FontAwesomeIcons.thermometer),
-                _formField('Fecha Montaje', fechaCont,TextInputType.text,FontAwesomeIcons.calendar),
+                _formField('Nombre', _nombreCont,TextInputType.name,FontAwesomeIcons.leaf),
+                _formField('Litros', _litrosCont,TextInputType.number,Icons.water_outlined),
+                _formField('Alto', _altoCont,TextInputType.number,FontAwesomeIcons.rulerVertical),
+                _formField('Ancho', _anchoCont,TextInputType.number,FontAwesomeIcons.rulerHorizontal),
+                _formField('Largo', _profundoCont,TextInputType.number,FontAwesomeIcons.rulerCombined),
+                _formField('Temperatura ideal',_tempCont,TextInputType.number,FontAwesomeIcons.thermometer),
+                _dateField('Fecha Montaje', _fechaCont,TextInputType.text,FontAwesomeIcons.calendar),
+                _formField('Alimentar cada', _intAlimCont,TextInputType.datetime,FontAwesomeIcons.utensils),
                   ],
                 ),
                 )
     );
                 
-  }
-  _module(){
-    return 
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Row(
-                      
-                      children: [
-                      Expanded(                                                    
-                            child:                        
-                              Text(moduloCont.text.isEmpty?"Moludo no conectado":'Modulo conectado',
-                                    style: TextStyle( fontWeight: FontWeight.bold, fontSize:20.0 ) 
-                            )
-                             )
-                    ],),
-
-                        IconButton(
-                                    tooltip: 'Conectar Modulo',
-                                    onPressed: ()async=>{await _qr()},
-                                    icon: Icon(Icons.qr_code_scanner,color: Colors.blueAccent),
-                                    iconSize: MediaQuery.of(context).size.width/2,),
-                  ]
-
-                  );
-              
   }
   _formField(String nombre,TextEditingController controller,TextInputType type,IconData icon ){
     return RoundedIconTextFormField(
@@ -114,41 +103,186 @@ class _TanqueNuevoState extends State<TanqueNuevo> {
                   keyboardType: type
                 );
   }
-  _galeryPicker(){
-    return  Column(
-                  children: [
-                    CarouselSlider(
-                      //carouselController: buttonCarouselController,
-                    options: CarouselOptions(height: 200.0),
-                    items: images,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  Flexible(child: IconButton(
-                                    onPressed: ()=>{},//buttonCarouselController.previousPage(duration: Duration(milliseconds: 300), curve: Curves.linear)},
-                                    icon: Icon(Icons.arrow_back,color: Colors.blueAccent,),
-                                    ),
-                                    ),
-                  Flexible(child: IconButton(
-                                    onPressed: ()=>{},//()async =>{await _addImage()},
-                                    icon: Icon(Icons.add_a_photo,color: Colors.blueAccent,),
-                                    ),
-                                    ),
-                  Flexible(child: IconButton(
-                                    onPressed: ()=>{},//()async =>{await _addImage()},
-                                    icon: Icon(Icons.delete,color: Colors.blueAccent,),
-                                    ),
-                                    ),
-                  Flexible(child: IconButton(
-                                    onPressed: ()=>{},//()=>{buttonCarouselController.nextPage(duration: Duration(milliseconds: 300), curve: Curves.linear)},
-                                    icon: Icon(Icons.arrow_forward,color: Colors.blueAccent,),
-                                    ),
-                                    ),                            
-                ],
-              )
-                  ],
+  _dateField(String nombre,TextEditingController controller,TextInputType type,IconData icon ){
+    return RoundedIconTextFormField(
+                  controller: controller,
+                  validator: (val) => val!.isEmpty ? nombre+' vacio':null,
+                  labelText: nombre,
+                  prefixIcon: icon,
+                  keyboardType: type,
+                  readOnly: true,
+                  onTap: _seleccionaFecha,
                 );
   }
-  _qr() {}
+  void _seleccionaFecha() async {
+    DateTime? fechaSeleccionada = await showDatePicker(
+      context: context,
+      firstDate: DateTime(1950),
+      initialDate: _ultFechaSeleccionada,
+      lastDate: DateTime(DateTime.now().year - 15, 12, 31),
+      helpText: 'Selecciona una fecha',
+    );
+
+    if (fechaSeleccionada != null) {
+      //setState(() {
+        _ultFechaSeleccionada = fechaSeleccionada;
+        _fechaCont.text = '${fechaSeleccionada.day.toString().padLeft(2, "0")}/'
+          '${fechaSeleccionada.month.toString().padLeft(2, "0")}/'
+          '${fechaSeleccionada.year.toString()}';
+      //});
+    }
+  }
+  _loadImages(List<File> files, int index,List<Map<String, String>> imgs){
+    if(files.length>=0 && files.length>index){
+    String uid=Auth.getUserId()!;
+      Dialogo.dialogoProgreso(context,
+                          contenido: Text('Guardando imagenes'),
+                          future: Storage.guardaImagenTanque(uid: uid, img: files[index]), 
+                          alTerminar: (resultado) async {
+                                Fluttertoast.showToast(
+                                msg: 'Datos guardados',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                timeInSecForIosWeb: 1,
+                                backgroundColor: Colors.blueAccent,
+                                textColor: Colors.white,
+                                fontSize: 16.0
+                            );
+                            TaskSnapshot ts =resultado as TaskSnapshot;
+                            String imageUrl = await ts.ref.getDownloadURL();
+                            String imagePath= ts.ref.name; 
+                            imgs.add({
+                              'imgUrl':imageUrl,
+                              'imPath':imagePath
+                            });
+                            int paso=index+1;
+                            _loadImages(files, paso,imgs);
+                          }, 
+                          enError: (resultado){
+                            Fluttertoast.showToast(
+                                msg: 'Error: $resultado',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                timeInSecForIosWeb: 1,
+                                backgroundColor: Colors.blueGrey,
+                                textColor: Colors.white,
+                                fontSize: 16.0
+                            );
+                          },
+                          );  
+  }else{
+       _saveNew(imgs);
+    }
+
+  }
+  _saveNew(List<Map<String, String>> imgs) async {
+  var datos = Tanque.toMapFromControl(
+                                        Auth.getUserId()!, 
+                                        _moduloCont.text,
+                                        _nombreCont,
+                                        _litrosCont,
+                                        _altoCont,
+                                        _anchoCont,
+                                        _profundoCont, 
+                                        _tempCont,
+                                        _fechaCont, 
+                                        imgs);
+  var res = Firestore.registroTanque(uid: Auth.getUserId()!, datos: datos);
+  Dialogo.dialogoProgreso(context,
+                          contenido: Text('Guardando ${_nombreCont.text}'),
+                          future: res, 
+                          alTerminar: (resultado){
+                                Fluttertoast.showToast(
+                                msg: 'Datos guardados',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                timeInSecForIosWeb: 1,
+                                backgroundColor: Colors.blueAccent,
+                                textColor: Colors.white,
+                                fontSize: 16.0
+                            );
+                            _setAlimentacion();
+                          }, 
+                          enError: (resultado){
+                            Fluttertoast.showToast(
+                                msg: 'Error: $resultado',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                timeInSecForIosWeb: 1,
+                                backgroundColor: Colors.blueGrey,
+                                textColor: Colors.white,
+                                fontSize: 16.0
+                            );
+                          },
+                          );
+    
+}
+  _setAlimentacion() {
+  if(_moduloCont.text.isNotEmpty){
+  var res = Firestore.intervaloAlimentacion(mid: _moduloCont.text,
+                                           interValoHoras: double.parse(_intAlimCont.text));
+  Dialogo.dialogoProgreso(context,
+                          contenido: Text('Configurando Modulo'),
+                          future: res, 
+                          alTerminar: (resultado){
+                                Fluttertoast.showToast(
+                                msg: 'Modulo Configurado',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                timeInSecForIosWeb: 1,
+                                backgroundColor: Colors.blueAccent,
+                                textColor: Colors.white,
+                                fontSize: 16.0
+                            );
+                            Navigator.pop(context);
+                          }, 
+                          enError: (resultado){
+                            Fluttertoast.showToast(
+                                msg: 'Error: $resultado',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                timeInSecForIosWeb: 1,
+                                backgroundColor: Colors.blueGrey,
+                                textColor: Colors.white,
+                                fontSize: 16.0
+                            );
+
+                          },
+                          );
+  }else{
+    Navigator.pop(context);
+  }
+}
+  _validaFormulario(){
+    if(_formKey.currentState!.validate()){
+      _saveDialog();
+    }else{
+      Fluttertoast.showToast(
+                msg: 'Datos no validos',
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.BOTTOM,
+                timeInSecForIosWeb: 1,
+                backgroundColor: Colors.red,
+                textColor: Colors.white,
+                fontSize: 16.0
+            );
+    }
+  }
+  _saveDialog(){
+      Dialogo.dialogo(
+        context,                                     
+        titulo:Text('Atención'),
+        contenido: Text('¿Guardar ${_nombreCont.text}?'),
+        acciones: [
+        IconButton(icon: Icon(FontAwesomeIcons.check, color: Colors.blueAccent,),
+                  onPressed: ()async{
+                    Navigator.pop(context);
+                    final int index=0;
+                    _loadImages(_files,index,[]);
+                    },),
+        IconButton(icon: Icon(FontAwesomeIcons.ban,color: Colors.blueGrey),
+                  onPressed: ()=>{Navigator.pop(context)},),
+        ]);
+  }
+
 }
