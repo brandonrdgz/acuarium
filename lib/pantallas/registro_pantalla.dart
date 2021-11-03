@@ -8,9 +8,11 @@ import 'package:acuarium/pantallas/inicio_sesion_pantalla.dart';
 import 'package:acuarium/pantallas/negocio/pagina_principal_negocio_pantalla.dart';
 import 'package:acuarium/servicios/firebase/auth.dart';
 import 'package:acuarium/servicios/firebase/firestore.dart';
+import 'package:acuarium/servicios/firebase/storage.dart';
 import 'package:acuarium/utilidades/constantes.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
@@ -29,6 +31,7 @@ class _RegistroPantallaState extends State<RegistroPantalla> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final ImagePicker _imagePicker = ImagePicker();
   XFile? _ultImagen;
+  String _msjErrorImagenNoSeleccionada = '';
   final Icon _iconoCamara = Icon(Icons.camera_enhance_rounded);
   String _nombre = '';
   TextEditingController _controladorFechaNac = TextEditingController();
@@ -92,6 +95,13 @@ class _RegistroPantallaState extends State<RegistroPantalla> {
                           ),
                         ),
                         onTap: _muestraModalInferiorSeleccionarImagen,
+                      ),
+                      Text(
+                        _msjErrorImagenNoSeleccionada,
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontSize: 15
+                        ),
                       ),
                       RoundedIconTextFormField(
                         labelText: 'Nombre',
@@ -280,7 +290,7 @@ class _RegistroPantallaState extends State<RegistroPantalla> {
                   ],
                 ),
               ),
-              onTap: () async {
+              onTap: () {
                 Navigator.pop(context);
                 _escogerImagen(ImageSource.camera);
               },
@@ -295,7 +305,7 @@ class _RegistroPantallaState extends State<RegistroPantalla> {
                   ],
                 )
               ),
-              onTap: () async {
+              onTap: () {
                 Navigator.pop(context);
                 _escogerImagen(ImageSource.gallery);
               },
@@ -312,6 +322,12 @@ class _RegistroPantallaState extends State<RegistroPantalla> {
     if (imagenActual != null) {
       setState(() {
         _ultImagen = imagenActual;
+        _msjErrorImagenNoSeleccionada = '';
+      });
+    }
+    else {
+      setState(() {
+        _msjErrorImagenNoSeleccionada = 'Debe de escoger o tomar una fotografía';
       });
     }
   }
@@ -337,42 +353,26 @@ class _RegistroPantallaState extends State<RegistroPantalla> {
   }
 
   void _registrarse() {
-    if (_formKey.currentState != null && _formKey.currentState!.validate()) {
+    if (_ultImagen != null && _formKey.currentState != null && _formKey.currentState!.validate()) {
       _muestraDialogoProgreso();
+    }
+
+    if (_ultImagen == null) {
+      setState(() {
+        _msjErrorImagenNoSeleccionada = 'Debe de escoger o tomar una fotografía';
+      });
     }
   }
 
   void _muestraDialogoProgreso() async {
-    Future future = Auth.registrar(
-      correo: _correo,
-      contrasenia: _contrasenia
-    )
-    .then((UserCredential userCredential) {
-      return Firestore.registroUsuario(
-        correo: _correo,
-        tipo: _esNegocio ? 'Negocio' : 'Cliente'
-      );
-    })
-    .then((value) {
-      return Firestore.registroDatosUsuario(
-        correo: _correo,
-        nombre: _nombre,
-        fechaNac: _fechaNac
-      );
-    });
+    String uidUsuario = '';
+    Future future = tareaRegistro(uidUsuario);
 
     await Dialogo.dialogoProgreso(
       context,
       titulo: const Text('Registro'),
       contenido: const Text('Registrando. Espere por favor'),
-      future: _esNegocio ?
-        future.then((value) {
-          return Firestore.registroDatosInicialesNegocio(
-            correo: _correo,
-            nombreNegocio: _nombreNegocio
-          );
-        }) :
-        future,
+      future: future,
       alTerminar: (valor) {
         _muestraDialogoResultado(
           titulo: const Icon(Icons.check_circle, color: Colors.green),
@@ -392,15 +392,53 @@ class _RegistroPantallaState extends State<RegistroPantalla> {
         );
       },
       enError: (error) {
-        print(error);
+        String msjError = Constantes.mensjeError(error);
+
         _muestraDialogoResultado(
           titulo: const Icon(Icons.close, color: Colors.red),
-          contenido: const Text('Ocurrió un error durante el registro'),
+          contenido: Text(msjError),
           alAceptar: () {
             Navigator.pop(context);
           }
         );
       }
+    );
+  }
+
+  Future tareaRegistro(String uidUsuario) {
+    return Auth.registrar(
+      correo: _correo,
+      contrasenia: _contrasenia
+    )
+    .then(
+      (UserCredential userCredential) async {
+        if (userCredential.user != null) {
+          uidUsuario = userCredential.user!.uid;
+
+          await tareaSubirImagenPerfil(uidUsuario);
+        }
+      }
+    );
+  }
+
+  Future tareaSubirImagenPerfil(String uidUsuario) {
+    return Storage.subirImagenPerfil(File(_ultImagen!.path))!
+    .then(
+      (TaskSnapshot snapshot) async {
+        await tareaRegistroDatosUsuario(uidUsuario);
+      }
+    );
+  }
+
+  Future<void> tareaRegistroDatosUsuario(String uidUsuario) {
+    return Firestore.registroUsuario(
+      uid: uidUsuario,
+      imagen: 'perfil',
+      nombre: _nombre,
+      correo: _correo,
+      fechaNac: _fechaNac,
+      tipo: _esNegocio ? 'Negocio' : 'Cliente',
+      nombreNegocio: _nombreNegocio
     );
   }
 

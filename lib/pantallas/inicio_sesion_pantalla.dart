@@ -7,6 +7,7 @@ import 'package:acuarium/pantallas/registro_pantalla.dart';
 import 'package:acuarium/servicios/firebase/auth.dart';
 import 'package:acuarium/utilidades/constantes.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -62,7 +63,7 @@ class _InicioSesionPantallaState extends State<InicioSesionPantalla> {
                           });
                         },
                         validator: (String? correo) {
-                          if (correo == null) {
+                          if (correo == null || correo.isEmpty) {
                             return 'El correo electrónico no es válido';
                           }
                         }
@@ -155,36 +156,31 @@ class _InicioSesionPantallaState extends State<InicioSesionPantalla> {
 
   void _iniciarSesion() {
     if (_formKey.currentState != null && _formKey.currentState!.validate()) {
-      _muestraDialogoProgreso();
+      _muestraDialogoInicioSesion();
     }
   }
 
-void _muestraDialogoProgreso() async {
+  void _muestraDialogoInicioSesion() async {
+    String ruta = '';
+
     Future future = Auth.iniciarSesion(
       correo: _correo,
       contrasenia: _contrasenia
-    ).then((value) async {
-      CollectionReference usuarios = FirebaseFirestore.instance.collection('usuarios');
-      String? ruta;
+    ).then((UserCredential userCredential) async {
+      if (userCredential.user != null) {
+        DocumentReference refDocUsuario = FirebaseFirestore.instance.collection('usuarios').doc(userCredential.user!.uid);
+        DocumentSnapshot snapshotUsuario = await refDocUsuario.get();
 
-      await usuarios.get().then((QuerySnapshot snapshot) {
-        snapshot.docs.forEach((doc) {
-          if (doc['correo'] == _correo) {
-            if (doc['tipo'] == 'Cliente') {
-              ruta = PaginaPrincipalClientePantalla.id;
-            }
-            else {
-              ruta =PaginaPrincipalNegocioPantalla.id;
-            }
-          }
-        });
-      });
-
-      if (ruta == null) {
-        throw Exception('El usuario no es válido');
+        if (snapshotUsuario.exists) {
+          ruta = snapshotUsuario['tipo'] == 'Cliente' ? PaginaPrincipalClientePantalla.id : PaginaPrincipalNegocioPantalla.id;
+        }
+        else {
+          throw Exception('Usuario/contraseña no válidos');
+        }
       }
-
-      return ruta;
+      else {
+        throw Exception('Usuario/contraseña no válidos');
+      }
     });
 
     await Dialogo.dialogoProgreso(
@@ -192,15 +188,19 @@ void _muestraDialogoProgreso() async {
       titulo: const Text('Incio de sesión'),
       contenido: const Text('Iniciando sesión.'),
       future: future,
-      alTerminar: (ruta) {
-        Navigator.pop(context);
-        Navigator.pushNamed(context, ruta);
+      alTerminar: (valor) {
+        if (ruta.isNotEmpty) {
+          Navigator.pop(context);
+          Navigator.pushNamed(context, ruta);
+        }
       },
       enError: (error) {
+        String msjError = Constantes.mensjeError(error);
+
         Dialogo.dialogo(
           context,
           titulo: Icon(FontAwesomeIcons.timesCircle, color: Colors.red),
-          contenido: Text('Ocurrio un error al iniciar sesión'),
+          contenido: Text(msjError),
           acciones: <Widget>[
             TextButton(
               child: Text('Aceptar'),
@@ -210,7 +210,6 @@ void _muestraDialogoProgreso() async {
             )
           ]
         );
-        print(error);
       }
     );
   }
