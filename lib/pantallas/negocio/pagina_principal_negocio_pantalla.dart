@@ -1,25 +1,46 @@
-import 'package:acuarium/componentes/menu.dart';
 import 'package:acuarium/componentes/tarjeta.dart';
 import 'package:acuarium/pantallas/negocio/menu_negocio_drawer.dart';
+import 'package:acuarium/servicios/firebase/firestore.dart';
 import 'package:flutter/material.dart';
 
-class PaginaPrincipalNegocioPantalla extends StatelessWidget {
+class PaginaPrincipalNegocioPantalla extends StatefulWidget {
   static const String id = 'PaginaPrincipalNegocio';
   const PaginaPrincipalNegocioPantalla({Key? key}) : super(key: key);
+
+  @override
+  State<PaginaPrincipalNegocioPantalla> createState() => _PaginaPrincipalNegocioPantallaState();
+}
+
+class _PaginaPrincipalNegocioPantallaState extends State<PaginaPrincipalNegocioPantalla> {
+  String _nombreNegocio = '';
+  String _nombre = '';
+  String _correo = '';
+
+  @override
+  void initState() {
+    super.initState();
+    iniDatosEncabezadoDrawer();
+  }
+
+  void iniDatosEncabezadoDrawer() async {
+    _nombreNegocio = await Firestore.obtenNombreNegocio();
+    _nombre = await Firestore.obtenNombre();
+    _correo = await Firestore.obtenCorreo();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Acuarium')),
       drawer: MenuNegocioDrawer(
-        nombreEncabezado: 'Negocio\nJuan',
-        correoEncabezado: 'juan@negocio.com',
+        nombreEncabezado: '$_nombreNegocio\n$_nombre',
+        correoEncabezado: _correo,
       ),
       body: Column(
         children: <Widget>[
           SizedBox(height: 15.0,),
           Text(
-            'Bienvenido Negocio',
+            'Bienvenido $_nombre',
             style: TextStyle(
               fontSize: 30.0
             ),
