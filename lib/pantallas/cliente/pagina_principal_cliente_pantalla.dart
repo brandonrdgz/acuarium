@@ -1,6 +1,7 @@
 import 'package:acuarium/componentes/tarjeta.dart';
 import 'package:acuarium/pantallas/cliente/menu_cliente_drawer.dart';
 import 'package:acuarium/servicios/firebase/firestore.dart';
+import 'package:acuarium/servicios/firebase/storage.dart';
 import 'package:flutter/material.dart';
 
 class PaginaPrincipalClientePantalla extends StatefulWidget {
@@ -12,6 +13,7 @@ class PaginaPrincipalClientePantalla extends StatefulWidget {
 }
 
 class _PaginaPrincipalClientePantallaState extends State<PaginaPrincipalClientePantalla> {
+  String? _urlImagenPerfil;
   String _nombre = '';
   String _correo = '';
 
@@ -21,9 +23,14 @@ class _PaginaPrincipalClientePantallaState extends State<PaginaPrincipalClienteP
     iniDatosEncabezadoDrawer();
   }
 
+
   void iniDatosEncabezadoDrawer() async {
+    _urlImagenPerfil = await Storage.obtenURLImagen('perfil');
     _nombre = await Firestore.obtenNombre();
     _correo = await Firestore.obtenCorreo();
+
+    setState(() {
+    });
   }
 
   @override
@@ -31,6 +38,7 @@ class _PaginaPrincipalClientePantallaState extends State<PaginaPrincipalClienteP
     return Scaffold(
       appBar: AppBar(title: Text('Acuarium')),
       drawer: MenuClienteDrawer(
+        imagenEncabezado: _urlImagenPerfil != null ? NetworkImage(_urlImagenPerfil!) : null,
         nombreEncabezado: _nombre,
         correoEncabezado: _correo,
       ),

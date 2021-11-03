@@ -2,41 +2,27 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class Firestore {
-  static Future<void> registroUsuario({required String uid, required String correo, required String tipo}) {
-    CollectionReference usuarios = FirebaseFirestore.instance.collection('usuarios');
 
-    return usuarios.doc(uid).set({
-      'correo': correo,
-      'tipo': tipo
-    });
-  }
-
-  static Future<void> registroDatosUsuario({
+  static Future<void> registroUsuario({
     required String uid,
+    required String imagen,
     required String correo,
     required String nombre,
+    String nombreNegocio = '',
     required String fechaNac,
+    required String tipo
   }) {
-    CollectionReference datosUsuarios = FirebaseFirestore.instance.collection('datosUsuarios');
-
-    return datosUsuarios.doc(uid).set({
+    CollectionReference usuarios = FirebaseFirestore.instance.collection('usuarios');
+    Map<String, String> datos = {
+      'imagen': imagen,
       'correo': correo,
       'nombre': nombre,
-      'fechaNac': fechaNac
-    });
-  }
+      'fechaNac': fechaNac,
+      'tipo': tipo,
+      if (tipo == 'Negocio') 'nombreNegocio': nombreNegocio,
+    };
 
-  static Future<void> registroDatosInicialesNegocio({
-    required String uid,
-    required String correo,
-    required String nombreNegocio,
-  }) {
-    CollectionReference usuarios = FirebaseFirestore.instance.collection('datosNegocios');
-
-    return usuarios.doc(uid).set({
-      'correo': correo,
-      'nombreNegocio': nombreNegocio,
-    });
+    return usuarios.doc(uid).set(datos);
   }
 
   static Future<String> obtenCorreo() async {
@@ -44,7 +30,7 @@ class Firestore {
     String correo = '';
 
     if (usuario != null) {
-      DocumentReference refDocDatosUsuario = FirebaseFirestore.instance.collection('datosUsuarios').doc(usuario.uid);
+      DocumentReference refDocDatosUsuario = FirebaseFirestore.instance.collection('usuarios').doc(usuario.uid);
       DocumentSnapshot snapshotDatosUsuario = await refDocDatosUsuario.get();
 
       if (snapshotDatosUsuario.exists) {
@@ -60,7 +46,7 @@ class Firestore {
     String nombre = '';
 
     if (usuario != null) {
-      DocumentReference refDocDatosUsuario = FirebaseFirestore.instance.collection('datosUsuarios').doc(usuario.uid);
+      DocumentReference refDocDatosUsuario = FirebaseFirestore.instance.collection('usuarios').doc(usuario.uid);
       DocumentSnapshot snapshotDatosUsuario = await refDocDatosUsuario.get();
 
       if (snapshotDatosUsuario.exists) {
@@ -76,7 +62,7 @@ class Firestore {
     String nombreNegocio = '';
 
     if (usuario != null) {
-      DocumentReference refDocDatosNegocio = FirebaseFirestore.instance.collection('datosNegocios').doc(usuario.uid);
+      DocumentReference refDocDatosNegocio = FirebaseFirestore.instance.collection('usuarios').doc(usuario.uid);
       DocumentSnapshot snapshotDatosNegocio = await refDocDatosNegocio.get();
 
       if (snapshotDatosNegocio.exists) {

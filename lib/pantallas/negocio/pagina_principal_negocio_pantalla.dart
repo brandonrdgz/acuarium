@@ -1,6 +1,7 @@
 import 'package:acuarium/componentes/tarjeta.dart';
 import 'package:acuarium/pantallas/negocio/menu_negocio_drawer.dart';
 import 'package:acuarium/servicios/firebase/firestore.dart';
+import 'package:acuarium/servicios/firebase/storage.dart';
 import 'package:flutter/material.dart';
 
 class PaginaPrincipalNegocioPantalla extends StatefulWidget {
@@ -12,6 +13,7 @@ class PaginaPrincipalNegocioPantalla extends StatefulWidget {
 }
 
 class _PaginaPrincipalNegocioPantallaState extends State<PaginaPrincipalNegocioPantalla> {
+  String? _urlImagenPerfil;
   String _nombreNegocio = '';
   String _nombre = '';
   String _correo = '';
@@ -23,9 +25,13 @@ class _PaginaPrincipalNegocioPantallaState extends State<PaginaPrincipalNegocioP
   }
 
   void iniDatosEncabezadoDrawer() async {
+    _urlImagenPerfil = await Storage.obtenURLImagen('perfil');
     _nombreNegocio = await Firestore.obtenNombreNegocio();
     _nombre = await Firestore.obtenNombre();
     _correo = await Firestore.obtenCorreo();
+
+    setState(() {
+    });
   }
 
   @override
@@ -33,6 +39,7 @@ class _PaginaPrincipalNegocioPantallaState extends State<PaginaPrincipalNegocioP
     return Scaffold(
       appBar: AppBar(title: Text('Acuarium')),
       drawer: MenuNegocioDrawer(
+        imagenEncabezado: _urlImagenPerfil != null ? NetworkImage(_urlImagenPerfil!) : null,
         nombreEncabezado: '$_nombreNegocio\n$_nombre',
         correoEncabezado: _correo,
       ),

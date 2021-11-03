@@ -10,14 +10,16 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class MenuClienteDrawer extends StatelessWidget {
+  final ImageProvider? imagenEncabezado;
   final String nombreEncabezado;
   final String correoEncabezado;
 
-  const MenuClienteDrawer({required this.nombreEncabezado, required this.correoEncabezado});
+  const MenuClienteDrawer({this.imagenEncabezado, required this.nombreEncabezado, required this.correoEncabezado});
 
   @override
   Widget build(BuildContext context) {
     return Menu(
+      imagenEncabezado: imagenEncabezado,
       nombreEncabezado: nombreEncabezado,
       correoEncabezado: correoEncabezado,
       colorEncabezado: Colors.blue,
