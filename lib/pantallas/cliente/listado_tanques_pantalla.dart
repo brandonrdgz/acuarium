@@ -1,7 +1,9 @@
 import 'package:acuarium/componentes/dialogo.dart';
+import 'package:acuarium/componentes/info_views.dart';
 import 'package:acuarium/componentes/rounded_icon_text_form_field.dart';
 import 'package:acuarium/componentes/tarjeta.dart';
 import 'package:acuarium/modelos/tanque.dart';
+import 'package:acuarium/pantallas/cliente/agregar_pez_tanque_pantalla.dart';
 import 'package:acuarium/pantallas/cliente/agregar_tanque_pantalla.dart';
 import 'package:acuarium/pantallas/cliente/editar_tanque_pantalla.dart';
 import 'package:acuarium/pantallas/cliente/informacion_tanque_pantalla.dart';
@@ -48,10 +50,6 @@ class  TanquesState extends State <Tanques> {
       appBar: AppBar(
           title: Text(_title),
           backgroundColor: Colors.blueAccent,
-      ),
-            drawer: MenuClienteDrawer(
-        nombreEncabezado: Auth.getUserId()!,
-        correoEncabezado: Auth.getUserEmail()!,
       ),
       body: Column(children: [
             _searchField(),
@@ -100,7 +98,7 @@ class  TanquesState extends State <Tanques> {
 }
   _listFromFilter(){
         if (_filterItems.length==0) {
-          return Text('Sin resultados');
+          return InfoView(type: InfoView.INFO_VIEW, context: context,msg: 'Sin resultados');
         }else{
           return _listBuilder(_filterItems);
         }
@@ -112,15 +110,15 @@ class  TanquesState extends State <Tanques> {
   stream: Firestore.listaTanques(uid: Auth.getUserId()!),
   builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (snapshot.hasError) {
-          return Text('Ocurrio un error');
+          return InfoView(type: InfoView.ERROR_VIEW, context: context,msg: 'Ocurrio un error');
         }
 
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Text('Cargando datos');
+          return InfoView(type: InfoView.LOADING_VIEW, context: context,);
         }
 
         if (snapshot.data!.docs.isEmpty) {
-          return Text('Sin datos');
+          return InfoView(type: InfoView.INFO_VIEW, context: context,msg: 'Sin datos');
         }
 
         _items.clear();

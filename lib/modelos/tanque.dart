@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -12,6 +13,7 @@ class Tanque{
   double _profundo=0.0;
   double _temperatura=0.0;
   String _fechaMontaje='';
+  double _luminocidad=0.0;
   List<dynamic> _galeria=[];
 
 
@@ -27,6 +29,7 @@ class Tanque{
   double get getProfundo => _profundo;
   double get getTemperatura => _temperatura;
   String get getFechaMontaje => _fechaMontaje;
+  double get getLuminocidad => _luminocidad;
   List<dynamic> get getGaleria => _galeria;
 
   set setId(String id) => _id=id;
@@ -37,17 +40,22 @@ class Tanque{
   set setAlto(double a) => _alto=a;
   set setAncho(double a) => _ancho=a;
   set setProfundo(double p) => _profundo=p;
+  set setLuminocidad(double p) => _luminocidad=p;
   set setTemperatura(double p) => _temperatura=p;
   set setFechaMontaje(String f) => _fechaMontaje=f;
   set setGaleria(List<dynamic> l) => _galeria=l;
 
 
 
-  List<Image> getGaleriaImgs() {
-    List<Image> images=[];
+  List<Widget> getGaleriaImgs() {
+    List<Widget> images=[];
     if(_galeria.length>0){
       _galeria.forEach((element) { 
-      images.add(Image.network(element['imgUrl']!));
+      images.add(CachedNetworkImage(
+        imageUrl: element['imgUrl']!,
+        placeholder: (context, url) => new CircularProgressIndicator(),
+        errorWidget: (context, url, error) => new Icon(Icons.error),
+      ));
       
     });
     }else{
@@ -56,10 +64,14 @@ class Tanque{
     return images;
     }
 
-  Image getCardImgs() {
+  Widget getCardImgs() {
     if(_galeria.length>0){
       var entry = _galeria[0];
-      return Image.network(entry['imgUrl']!);
+      return CachedNetworkImage(
+   imageUrl: entry['imgUrl']!,
+   placeholder: (context, url) => new CircularProgressIndicator(),
+   errorWidget: (context, url, error) => new Icon(Icons.error),
+ ); 
     }else{
       return Image(image: AssetImage('images/acuarium.png'));
     }
@@ -76,7 +88,8 @@ class Tanque{
                                         TextEditingController profundoCont,
                                         TextEditingController temperaturaCont,
                                         TextEditingController fechaMontajeCont,
-                                        List<Map<String, String>> imgs){
+                                        TextEditingController luminocidadCont,
+                                        List<dynamic> imgs){
         return {
           'idCliente':idCliente,
           'idModulo':idModulo,
@@ -87,7 +100,9 @@ class Tanque{
           'profundo':profundoCont.text,
           'temperatura':temperaturaCont.text,
           'fechaMontaje':fechaMontajeCont.text,
+          'luminocidad':luminocidadCont.text,
           'imagenes':imgs
+          
             };
   } 
 
@@ -103,6 +118,7 @@ class Tanque{
     this._temperatura=obj['temperatura'];
     this._fechaMontaje=obj['fechaMontaje'];
     this._galeria=obj['imagenes'];
+    this._luminocidad=obj['luminocidad'];
   }
 
     Tanque.fromSnapshot(DocumentSnapshot obj){      
@@ -117,6 +133,7 @@ class Tanque{
     this._profundo=double.parse(obj.get('profundo'));
     this._fechaMontaje=obj.get('fechaMontaje');
     this._galeria=obj.get('imagenes');
+    this._luminocidad=double.parse(obj.get('luminocidad'));
 
   }
 

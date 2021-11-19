@@ -1,8 +1,15 @@
 import 'package:acuarium/componentes/dialogo.dart';
+import 'package:acuarium/componentes/etiquetas.dart';
+import 'package:acuarium/componentes/info_views.dart';
 import 'package:acuarium/modelos/peces.dart';
 import 'package:acuarium/pantallas/cliente/editar_pez_tanque_pantalla.dart';
+import 'package:acuarium/servicios/firebase/auth.dart';
+import 'package:acuarium/servicios/firebase/firestore.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class PezTanque extends StatefulWidget {
@@ -14,7 +21,9 @@ class PezTanque extends StatefulWidget {
 }
 
 class _PezTanqueState extends State<PezTanque> {
-  late final PezDeTanque pez ;
+  late PezDeTanque _pez;
+
+
    @override
   void initState() {
       super.initState();
@@ -22,8 +31,64 @@ class _PezTanqueState extends State<PezTanque> {
   
   @override
   Widget build(BuildContext context) {
-    pez = ModalRoute.of(context)!.settings.arguments as PezDeTanque;
-    return SafeArea(child: Scaffold(
+    _pez = ModalRoute.of(context)!.settings.arguments as PezDeTanque;
+    return SafeArea(
+      child: _dataFromStream()
+    );
+  }
+
+  _dataFromStream(){
+    return StreamBuilder(
+      stream: Firestore.datosPezdeTanque(uid: Auth.getUserId()!, tid: _pez.getIdTanque,pid: _pez.getId),
+      builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>> snapshot) {
+        if (snapshot.hasError) {
+          return _errorView('Error','Error al cargar los datos');
+        }
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return _loadingView('Cargando','Cargando Datos');
+        }
+
+        if (!snapshot.data!.exists){
+          return _errorView('Sin datos','No se encontraron los datos');
+        }
+
+        if (snapshot.data!.data()!.length==0) {
+          return _errorView('Sin datos','No se encontraron los datos');
+        }
+
+        _pez=PezDeTanque.fromSnapshot(snapshot.data!);
+        return _dataDisplay(_pez);
+  });
+  }
+  _loadingView(String titulo,String msgError){
+    return Scaffold(
+      resizeToAvoidBottomInset: true,
+      appBar: AppBar(
+          title: Text(titulo),
+          backgroundColor: Colors.blueAccent,
+      ),
+      body: SingleChildScrollView(
+        child: 
+        InfoView(type: InfoView.LOADING_VIEW, context: context,)
+            )
+            );
+  }
+  _errorView(String titulo,String msgError){
+    return Scaffold(
+      resizeToAvoidBottomInset: true,
+      appBar: AppBar(
+          title: Text(titulo),
+          backgroundColor: Colors.blueAccent,
+      ),
+      body: SingleChildScrollView(
+        child:InfoView(type: InfoView.ERROR_VIEW, context: context,msg: msgError,)
+            )
+            );
+  }
+
+  _dataDisplay(PezDeTanque pez){
+    return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
           title: Text(pez.getNombre),
@@ -32,19 +97,21 @@ class _PezTanqueState extends State<PezTanque> {
       body: SingleChildScrollView(
           child: Column(
             children: [       
-              Image(
-                    image: AssetImage(pez.getImagen),
-                  ),
+            CachedNetworkImage(
+              imageUrl: pez.getImagen['imgUrl']!,
+              placeholder: (context, url) => new CircularProgressIndicator(),
+              errorWidget: (context, url, error) => new Icon(Icons.error),
+            ),
               Container(
                 margin: EdgeInsets.all(10),
                 child: Column(
                   children: [
                   Divider(thickness: 2.0,),
-                  _iconLabel(Icon(FontAwesomeIcons.infoCircle, color: Colors.blueAccent),' Datos'),
-                  _label('Especie', '${pez.getNombre}'),
-                  _label('Número', '${pez.getNumero}'),
+                  IconLabel(icon:Icon(FontAwesomeIcons.infoCircle, color: Colors.blueAccent),text: ' Datos'),
+                  TextLabel(label: 'Especie',text: '${pez.getNombre}'),
+                  TextLabel(label: 'Número',text: '${pez.getNumero}'),
                   Divider(thickness: 2.0,),
-                  _iconLabel(Icon(FontAwesomeIcons.leaf, color: Colors.blueAccent),' Cuidados'),                  
+                  IconLabel(icon:Icon(FontAwesomeIcons.leaf, color: Colors.blueAccent),text: ' Cuidados'),                          
                   Row(
                     children: [
                       Expanded(child: 
@@ -61,69 +128,13 @@ class _PezTanqueState extends State<PezTanque> {
                 ),
               )
 
-
-            //_moduleBannerFromStream(),   
-            /*Card(
-              child: Column(
-                children: [
-                  Text('Peces'),
-                  Flexible(child: _listFromStream()),
-                  TextButton(onPressed:()async=>{},                  
-                  style: TextButton.styleFrom(
-                          primary: Colors.white,
-                          backgroundColor: Colors.blueAccent
-                        ),
-                  child: Text("Ver lista", style: 
-                  TextStyle( fontWeight: FontWeight.bold, fontSize:18.0 ))
-                ),
-                ],
-              )
-            )*/             
             ]
         ),
       ),      
       floatingActionButton: _getFAB(),
-    )
     );
   }
-
-    Row _iconLabel(Icon icon, String campo){
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.start,
-    children: [
-      Flexible(
-        child:icon,
-      ),
-      Flexible(
-        child:
-          Text("$campo: ",
-                      style: TextStyle( fontWeight: FontWeight.bold, fontSize:20.0 ) 
-              )
-      ),
-    ]
-  );                  
-}
-
-  Row _label( String campo,  val){
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.start,
-    children: [
-      Flexible(
-        child:
-          Text("$campo: ",
-                      style: TextStyle( fontWeight: FontWeight.bold, fontSize:18.0 ) 
-              ),
-      ),
-      Flexible(
-        child:
-          Text("$val",
-                      style: TextStyle( fontWeight: FontWeight.normal, fontSize:16.0 ) 
-              ),
-      ),
-    ]
-  );                  
-}
-
+  
   Widget _getFAB() {
         return SpeedDial(
           animatedIcon: AnimatedIcons.menu_close,
@@ -136,7 +147,7 @@ class _PezTanqueState extends State<PezTanque> {
                 SpeedDialChild(
                 child: Icon(Icons.edit, color: Colors.white),
                 backgroundColor: Colors.blueAccent,
-                onTap: () { Navigator.pushNamed(context, EditarPezTanque.id,arguments:pez);},
+                onTap: () { Navigator.pushNamed(context, EditarPezTanque.id,arguments:_pez);},
                 label: 'Editar',
                 labelStyle: TextStyle(
                     fontWeight: FontWeight.w500,
@@ -151,10 +162,13 @@ class _PezTanqueState extends State<PezTanque> {
                               Dialogo.dialogo(
                                           context,                                     
                                           titulo:Text('Atención'),
-                                          contenido: Text('¿Eliminar ${pez.getNombre}?'),
+                                          contenido: Text('¿Eliminar ${_pez.getNombre}?'),
                                           acciones: [
                                             IconButton(icon: Icon(FontAwesomeIcons.check, color: Colors.blueAccent,),
-                                                        onPressed: ()=>{Navigator.pop(context)},),
+                                                        onPressed: (){
+                                                        Navigator.pop(context);
+                                                        _confirmaEliminacion(_pez);
+                                                        },),
                                             IconButton(icon: Icon(FontAwesomeIcons.ban,color: Colors.blueGrey),
                                                         onPressed: ()=>{Navigator.pop(context)},),
                                           ]);
@@ -168,6 +182,38 @@ class _PezTanqueState extends State<PezTanque> {
           ],
         );
   }
+
+    _confirmaEliminacion(PezDeTanque p){
+  var res = Firestore.eliminaPezdeTanque(uid: Auth.getUserId()!, tid: p.getIdTanque,pid: p.getId);
+  Dialogo.dialogoProgreso(context,
+                          contenido: Text('Eliminando ${p.getNombre}'),
+                          future: res, 
+                          alTerminar: (resultado){                                
+                                Navigator.pop(context);
+                                Fluttertoast.showToast(
+                                msg: 'Datos Borrados',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                timeInSecForIosWeb: 1,
+                                backgroundColor: Colors.blueAccent,
+                                textColor: Colors.white,
+                                fontSize: 16.0
+                            );
+                          }, 
+                          enError: (resultado){
+                            Fluttertoast.showToast(
+                                msg: 'Error: $resultado',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                timeInSecForIosWeb: 1,
+                                backgroundColor: Colors.blueGrey,
+                                textColor: Colors.white,
+                                fontSize: 16.0
+                            );
+
+                          }, );
+  }
+
 
 
 

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:acuarium/componentes/dialogo.dart';
+import 'package:acuarium/componentes/galery_editor.dart';
 import 'package:acuarium/componentes/galery_picker.dart';
 import 'package:acuarium/componentes/module_reader.dart';
 import 'package:acuarium/componentes/rounded_icon_text_form_field.dart';
@@ -30,11 +31,10 @@ class _TanqueNuevoState extends State<TanqueNuevo> {
   TextEditingController _fechaCont = new TextEditingController();
   TextEditingController _moduloCont = new TextEditingController();
   TextEditingController _tempCont = new TextEditingController();
-  TextEditingController _intAlimCont = new TextEditingController();
+  TextEditingController _lumCont = new TextEditingController();
+  GaleryEditorController _galeryController = new GaleryEditorController();
   final String _title='Nuevo Tanque';
   final _formKey = GlobalKey<FormState>();
-  List<Image> _images=[];
-  List<File> _files=[];
   late DateTime _ultFechaSeleccionada;
 
         @override
@@ -56,7 +56,7 @@ class _TanqueNuevoState extends State<TanqueNuevo> {
         padding: const EdgeInsets.all(20.0),
         child:  Column(
               children: <Widget>[
-                GaleryPicker(images: _images,files:_files),
+                GaleryEditor(controller:_galeryController),
                 Divider(thickness: 1.5,),
                 _form(),
                 Divider(thickness: 1.5,),
@@ -87,7 +87,7 @@ class _TanqueNuevoState extends State<TanqueNuevo> {
                 _formField('Largo', _profundoCont,TextInputType.number,FontAwesomeIcons.rulerCombined),
                 _formField('Temperatura ideal',_tempCont,TextInputType.number,FontAwesomeIcons.thermometer),
                 _dateField('Fecha Montaje', _fechaCont,TextInputType.text,FontAwesomeIcons.calendar),
-                _formField('Alimentar cada', _intAlimCont,TextInputType.datetime,FontAwesomeIcons.utensils),
+                _formField('Luminocidad ideal', _lumCont,TextInputType.datetime,FontAwesomeIcons.lightbulb),
                   ],
                 ),
                 )
@@ -153,7 +153,7 @@ class _TanqueNuevoState extends State<TanqueNuevo> {
                             String imagePath= ts.ref.name; 
                             imgs.add({
                               'imgUrl':imageUrl,
-                              'imPath':imagePath
+                              'imgPath':imagePath
                             });
                             int paso=index+1;
                             _loadImages(files, paso,imgs);
@@ -186,6 +186,7 @@ class _TanqueNuevoState extends State<TanqueNuevo> {
                                         _profundoCont, 
                                         _tempCont,
                                         _fechaCont, 
+                                        _lumCont,
                                         imgs);
   var res = Firestore.registroTanque(uid: Auth.getUserId()!, datos: datos);
   Dialogo.dialogoProgreso(context,
@@ -201,7 +202,7 @@ class _TanqueNuevoState extends State<TanqueNuevo> {
                                 textColor: Colors.white,
                                 fontSize: 16.0
                             );
-                            _setAlimentacion();
+                             Navigator.pop(context);
                           }, 
                           enError: (resultado){
                             Fluttertoast.showToast(
@@ -217,43 +218,7 @@ class _TanqueNuevoState extends State<TanqueNuevo> {
                           );
     
 }
-  _setAlimentacion() {
-  if(_moduloCont.text.isNotEmpty){
-  var res = Firestore.intervaloAlimentacion(mid: _moduloCont.text,
-                                           interValoHoras: double.parse(_intAlimCont.text));
-  Dialogo.dialogoProgreso(context,
-                          contenido: Text('Configurando Modulo'),
-                          future: res, 
-                          alTerminar: (resultado){
-                                Fluttertoast.showToast(
-                                msg: 'Modulo Configurado',
-                                toastLength: Toast.LENGTH_SHORT,
-                                gravity: ToastGravity.BOTTOM,
-                                timeInSecForIosWeb: 1,
-                                backgroundColor: Colors.blueAccent,
-                                textColor: Colors.white,
-                                fontSize: 16.0
-                            );
-                            Navigator.pop(context);
-                          }, 
-                          enError: (resultado){
-                            Fluttertoast.showToast(
-                                msg: 'Error: $resultado',
-                                toastLength: Toast.LENGTH_SHORT,
-                                gravity: ToastGravity.BOTTOM,
-                                timeInSecForIosWeb: 1,
-                                backgroundColor: Colors.blueGrey,
-                                textColor: Colors.white,
-                                fontSize: 16.0
-                            );
-
-                          },
-                          );
-  }else{
-    Navigator.pop(context);
-  }
-}
-  _validaFormulario(){
+ _validaFormulario(){
     if(_formKey.currentState!.validate()){
       _saveDialog();
     }else{
@@ -278,7 +243,7 @@ class _TanqueNuevoState extends State<TanqueNuevo> {
                   onPressed: ()async{
                     Navigator.pop(context);
                     final int index=0;
-                    _loadImages(_files,index,[]);
+                    _loadImages(_galeryController.addedFiles(),index,[]);
                     },),
         IconButton(icon: Icon(FontAwesomeIcons.ban,color: Colors.blueGrey),
                   onPressed: ()=>{Navigator.pop(context)},),

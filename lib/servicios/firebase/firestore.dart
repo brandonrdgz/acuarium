@@ -7,6 +7,7 @@ class Firestore {
   static const String _coleccionDirecciones= 'direcciones';
   static const String _coleccionUsuarios= 'usuarios';
   static const String _coleccionTanques= 'tanques';
+  static const String _coleccionPecesTanque= 'peces';
   static const String _coleccionModulos= 'modulos';
   static const String _campoNombre= 'nombre';
 
@@ -137,6 +138,14 @@ class Firestore {
     return  FirebaseFirestore.instance.collection(_coleccionUsuarios).doc(uid).collection(_coleccionTanques).snapshots();
     
   }
+
+  static Stream<QuerySnapshot<Map<String, dynamic>>> listaPecesTanque({
+    required String uid,
+    required String tid,
+  }) {
+    return  FirebaseFirestore.instance.collection(_coleccionUsuarios).doc(uid).collection(_coleccionTanques).doc(tid).collection(_coleccionPecesTanque).snapshots();
+    
+  }
     static Future<void> eliminaTanque({
     required String uid,
     required String rid,
@@ -149,10 +158,65 @@ class Firestore {
 
   }
 
+  static Future<void> eliminaPezdeTanque({
+    required String uid,
+    required String tid,
+    required String pid,
+  }) {
+    return FirebaseFirestore.instance.collection(_coleccionUsuarios)
+                              .doc(uid)
+                              .collection(_coleccionTanques)
+                              .doc(tid)
+                              .collection(_coleccionPecesTanque)
+                              .doc(pid)
+                              .delete();
+
+  }
+
   static Stream<DocumentSnapshot<Map<String, dynamic>>> datosModulo({
     required String mid,
   }) {
     return  FirebaseFirestore.instance.collection(_coleccionModulos).doc(mid).snapshots();
+    
+  }
+
+  static Stream<DocumentSnapshot<Map<String, dynamic>>> datosTanque({
+    required String uid,
+    required String tid,
+  }) {
+    return  FirebaseFirestore.instance
+                            .collection(_coleccionUsuarios)
+                            .doc(uid)
+                            .collection(_coleccionTanques)
+                            .doc(tid)
+                            .snapshots();
+    
+  }
+    static Stream<DocumentSnapshot<Map<String, dynamic>>> datosDireccion({
+    required String uid,
+    required String did,
+  }) {
+    return  FirebaseFirestore.instance
+                            .collection(_coleccionUsuarios)
+                            .doc(uid)
+                            .collection(_coleccionDirecciones)
+                            .doc(did)
+                            .snapshots();
+    
+  }
+    static Stream<DocumentSnapshot<Map<String, dynamic>>> datosPezdeTanque({
+    required String uid,
+    required String tid,
+    required String pid,
+  }) {
+    return  FirebaseFirestore.instance
+                            .collection(_coleccionUsuarios)
+                            .doc(uid)
+                            .collection(_coleccionTanques)
+                            .doc(tid)
+                            .collection(_coleccionPecesTanque)
+                            .doc(pid)
+                            .snapshots();
     
   }
 
@@ -164,6 +228,46 @@ class Firestore {
                               .doc(uid)
                               .collection(_coleccionTanques)
                               .add(datos);
+  }
+
+    static Future<DocumentReference<Object?>> registroPezdeTanque({
+    required String uid,
+    required String tid,
+    required Map<String, dynamic> datos,
+  }) {
+    return FirebaseFirestore.instance.collection(_coleccionUsuarios)
+                              .doc(uid)
+                              .collection(_coleccionTanques)
+                              .doc(tid)
+                              .collection(_coleccionPecesTanque)
+                              .add(datos);
+  }
+
+  static Future<void> actualizaPezdeTanque({
+    required String uid,
+    required String tid,
+    required String pid,
+    required Map<String, dynamic> datos,
+  }) {
+    return FirebaseFirestore.instance.collection(_coleccionUsuarios)
+                              .doc(uid)
+                              .collection(_coleccionTanques)
+                              .doc(tid)
+                              .collection(_coleccionPecesTanque)
+                              .doc(pid)
+                              .update(datos);
+  }
+  
+  static Future<void> actualizaTanque({
+    required String uid,
+    required String tid,
+    required Map<String, dynamic> datos,
+  }) {
+    return FirebaseFirestore.instance.collection(_coleccionUsuarios)
+                              .doc(uid)
+                              .collection(_coleccionTanques)
+                              .doc(tid)
+                              .update(datos);
   }
 
     static Future<void> intervaloAlimentacion({

@@ -1,4 +1,5 @@
 import 'package:acuarium/componentes/dialogo.dart';
+import 'package:acuarium/componentes/info_views.dart';
 import 'package:acuarium/componentes/rounded_icon_text_form_field.dart';
 import 'package:acuarium/componentes/tarjeta.dart';
 import 'package:acuarium/modelos/direccion.dart';
@@ -77,15 +78,15 @@ class _DireccionesListaState extends State<DireccionesLista> with TickerProvider
   stream: Firestore.listaDirecciones(uid: Auth.getUserId()!),
   builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (snapshot.hasError) {
-          return Text('Ocurrio un error');
+          return InfoView(type: InfoView.ERROR_VIEW, context: context,msg: 'Ocurrio un error');
         }
 
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Text('Cargando datos');
+          return InfoView(type: InfoView.LOADING_VIEW, context: context,);
         }
 
         if (snapshot.data!.docs.isEmpty) {
-          return Text('Sin datos');
+          return InfoView(type: InfoView.INFO_VIEW, context: context,msg: 'Sin datos');
         }
 
         _items.clear();
@@ -98,7 +99,7 @@ class _DireccionesListaState extends State<DireccionesLista> with TickerProvider
 }
   _listFromFilter(){
         if (_filterItems.length==0) {
-          return Text('Sin resultados');
+          return InfoView(type: InfoView.INFO_VIEW, context: context,msg: 'Sin resultados');
         }else{
           return _listBuilder(_filterItems);
         }
@@ -213,10 +214,6 @@ class _DireccionesListaState extends State<DireccionesLista> with TickerProvider
       appBar: AppBar(
           title: Text(_titulo),
           backgroundColor: Colors.blueAccent,
-      ),
-      drawer: MenuClienteDrawer(
-        nombreEncabezado: Auth.getUserId()!,
-        correoEncabezado: Auth.getUserEmail()!,
       ),
       body: Column(children: [
             _searchField(),

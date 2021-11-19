@@ -1,4 +1,5 @@
 import 'package:acuarium/componentes/etiquetas.dart';
+import 'package:acuarium/componentes/info_views.dart';
 import 'package:acuarium/componentes/tarjeta.dart';
 import 'package:acuarium/modelos/peces.dart';
 import 'package:acuarium/servicios/firebase/auth.dart';
@@ -20,27 +21,24 @@ class _FishListState extends State<FishList> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: Column(
-        children: [
-          _listFromStream()
-        ],
-      ),
-      
+      child: 
+          _listFromStream()      
     );
   }
 
-    _listBuilder(List<PezDeTanque> items){
-   return Row(
+  _listBuilder(List<PezDeTanque> items){
+   return Column(
      children: [
-       Flexible(
-         flex: 1,
-         child:IconLabel(icon: Icon(FontAwesomeIcons.fish, color: Colors.blueAccent), text: 'Peces')),
-     Flexible(
-       flex: 3,
-       child:     
-     ListView.builder(
+      IconLabel(icon: Icon(FontAwesomeIcons.fish, color: Colors.blueAccent), text: ' Peces'),
+     Row(
+      children: <Widget>[
+        Expanded(
+          child: SizedBox(
+            height: 200.0,
+            child: 
+              ListView.builder(
               itemCount: items.length,
-              padding: EdgeInsets.only(top:12.0),
+              padding: EdgeInsets.only(top:5.0),
               itemBuilder: (context, position){
                 return Tarjeta(color:Colors.white,
                   contenido:Column(
@@ -69,29 +67,52 @@ class _FishListState extends State<FishList> {
                 ));
               }
               )
-     ),
-     Flexible(
-       flex: 1,
-       child: 
-     TextLabel(label: 'Total Especies', text: '${items.length}')),
+          ),
+        ),]),
+
+     TextLabel(label: 'Total Especies', text: '${items.length}'),
               ]);
 }
+
+  _view(int i){
+    switch(i){
+      case 1:
+        return Column(
+            children: [
+              IconLabel(icon: Icon(FontAwesomeIcons.fish, color: Colors.blueAccent), text: ' Peces'),
+              InfoView(type: InfoView.ERROR_VIEW, context: context,msg: 'Ocurrio un error'),
+            ]);
+      case 2:
+        return Column(
+            children: [
+                IconLabel(icon: Icon(FontAwesomeIcons.fish, color: Colors.blueAccent), text: ' Peces'),
+                InfoView(type: InfoView.LOADING_VIEW, context: context,),
+            ]);
+      case 3:
+        return Column(
+            children: [
+                IconLabel(icon: Icon(FontAwesomeIcons.fish, color: Colors.blueAccent), text: ' Peces'),
+                InfoView(type: InfoView.INFO_VIEW, context: context,msg: 'Sin datos'),
+            ]);
+    }
+
+  }
 
 
   _listFromStream(){
   return  StreamBuilder(
-  stream: Firestore.listaDirecciones(uid: Auth.getUserId()!),
+  stream: Firestore.listaPecesTanque(uid: Auth.getUserId()!,tid: widget.idTanque),
   builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (snapshot.hasError) {
-          return Text('Ocurrio un error');
+          return _view(1);
         }
 
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Text('Cargando datos');
+          return _view(2);
         }
 
         if (snapshot.data!.docs.isEmpty) {
-          return Text('Sin datos');
+          return _view(3);
         }
 
         _items.clear();

@@ -9,6 +9,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 class Storage{
  static const String _tanquesPath= 'tanques';
  static const String _imagenesPath= 'img';
+ static const String _pecesPath= 'peces';
  
 
 
@@ -21,6 +22,41 @@ class Storage{
     var id= new Uuid();
     var imgPath=id.v1()+".jpg";  
     return storageRF.child(imgPath).putFile(img).whenComplete(() => null);
+
+  
+  }
+
+     static Future<TaskSnapshot> guardaImagenPezTanque(
+                                            {
+                                              required String uid,
+                                              required File img
+                                              })  {
+    final storageRF = FirebaseStorage.instance.ref('$_imagenesPath/$_tanquesPath/$_pecesPath/$uid');
+    var id= new Uuid();
+    var imgPath=id.v1()+".jpg";  
+    return storageRF.child(imgPath).putFile(img).whenComplete(() => null);
+
+  
+  }
+
+     static Future<void> eliminaImagenTanque(
+                                            {
+                                              required String uid,
+                                              required String name
+                                              })  {
+    final storageRF = FirebaseStorage.instance.ref('$_imagenesPath/$_tanquesPath/$uid/$name');
+    return storageRF.delete();
+
+  
+  }
+
+       static Future<void> eliminaImagenPezdeTanque(
+                                            {
+                                              required String uid,
+                                              required String name
+                                              })  {
+    final storageRF = FirebaseStorage.instance.ref('$_imagenesPath/$_tanquesPath/$_pecesPath/$uid/$name');
+    return storageRF.delete();
 
   
   }

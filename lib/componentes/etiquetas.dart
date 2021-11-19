@@ -11,10 +11,12 @@ class IconLabel extends StatelessWidget {
     mainAxisAlignment: MainAxisAlignment.start,
     children: [
       Flexible(
+        flex: 1,
         child:icon,
       ),
       Flexible(
-        child:
+        flex: 4,
+        child:        
           Text(text,
                       style: TextStyle( fontWeight: FontWeight.bold, fontSize:20.0 ) 
               )
@@ -35,12 +37,14 @@ class TextLabel extends StatelessWidget {
     mainAxisAlignment: MainAxisAlignment.start,
     children: [
       Flexible(
+        flex: 2,
         child:
           Text("$label:",
                       style: TextStyle( fontWeight: FontWeight.bold, fontSize:20.0 ) 
               ),
       ),
       Flexible(
+        flex: 3,
         child:
           Text(text,
                       style: TextStyle( fontWeight: FontWeight.normal, fontSize:18.0 ) 

@@ -12,7 +12,9 @@ import 'package:intl/intl.dart';
 class ModuleReader extends StatefulWidget {
   TextEditingController moduloCont;
   bool readAv;
-  ModuleReader({Key? key, required this.moduloCont, required this.readAv}) : super(key: key);
+  double? temp=0.0;
+  double? lum=0.0;
+  ModuleReader({Key? key, required this.moduloCont, required this.readAv,this.temp,this.lum}) : super(key: key);
 
   @override
   _ModuleReaderState createState() => _ModuleReaderState();
@@ -21,7 +23,11 @@ class ModuleReader extends StatefulWidget {
 class _ModuleReaderState extends State<ModuleReader> {
   final String _noConected= "Moludo no vinculado";
   final String _conected="Modulo vinculado";
-  final DateFormat _formatter = DateFormat('yyyy/MM/dd Hm');
+  final String _tempBaja=' Temperatura baja';
+  final String _tempAlta=' Temperatura alta';
+  final String _lumBaja=' Luminocidad baja';
+  final String _lumAlta=' Luminocidad alta';
+  final DateFormat _formatter = DateFormat('dd/MM/yyyy hh:mm a');
 
   @override
   Widget build(BuildContext context) {
@@ -64,12 +70,37 @@ class _ModuleReaderState extends State<ModuleReader> {
   _dataDisplay(Modulo m){
     return Column(
       children: [
-            TextLabel(label: 'Temperatura',text: '${m.getTemperatura}° C' ),                
+            TextLabel(label: 'Temperatura',text: '${m.getTemperatura.toStringAsFixed(2)}° C' ),                
+            _displayWarning(double.parse(m.getTemperatura.toStringAsFixed(2)),1),
+            TextLabel(label: 'Luminocidad', text:'${m.getLuminocidad.toStringAsFixed(2)} I'),
+            _displayWarning(double.parse(m.getLuminocidad.toStringAsFixed(2)),2),
             TextLabel(label: 'Ultima Lectura',text:'${_formatter.format(m.getUltimaLectura.toDate())}'),
-            TextLabel(label: 'Alimentando cada',text:'${m.getIntervaloAlimentacion}h' ),
-            TextLabel(label: 'Ultima comida', text:'${_formatter.format(m.getUltimaComida.toDate())}'),
       ],
     );
+  }
+
+  _displayWarning(double lectura, int m){
+    double? comp = m==1?widget.temp:widget.lum;
+
+    if(comp != null){
+    if(comp == 0.0){
+      return SizedBox();
+    }else if(comp > lectura){
+      return  IconLabel(icon:Icon(FontAwesomeIcons.exclamationTriangle, color: Colors.blueGrey),
+                        text: m==1?_tempBaja:_lumBaja,
+                        );
+    } else if(comp < lectura){
+      return  IconLabel(icon:Icon(FontAwesomeIcons.exclamationTriangle, color: Colors.blueGrey),
+                        text: m==1?_tempAlta:_lumAlta,
+                        );
+    }else{
+      return SizedBox();
+    }
+    }else{
+      return SizedBox();
+    }
+           
+
   }
 
   

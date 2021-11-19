@@ -1,9 +1,11 @@
 import 'package:acuarium/componentes/dialogo.dart';
 import 'package:acuarium/componentes/etiquetas.dart';
+import 'package:acuarium/componentes/info_views.dart';
 import 'package:acuarium/modelos/direccion.dart';
 import 'package:acuarium/pantallas/cliente/editar_direccion_pantalla.dart';
 import 'package:acuarium/servicios/firebase/auth.dart';
 import 'package:acuarium/servicios/firebase/firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -19,7 +21,7 @@ class DireccionVista extends StatefulWidget {
 }
 
 class _DireccionVistaState extends State<DireccionVista> {
-  late final Direccion _direccion;
+  late Direccion _direccion;
   late GoogleMapController _mapController;
   Set<Marker> _markers = Set();
   late LatLng _center;
@@ -46,15 +48,31 @@ class _DireccionVistaState extends State<DireccionVista> {
   @override
   Widget build(BuildContext context) {
     init();
-    return Scaffold(
-      resizeToAvoidBottomInset: true,
-      appBar: AppBar(
-          title: Text(_direccion.getNombre),
-          backgroundColor: Colors.blueAccent,
-      ),
-      body: _body(),
-      floatingActionButton: _getFAB(),
-    );
+    return _dataFromStream();
+  }
+    _dataFromStream(){
+    return StreamBuilder(
+      stream: Firestore.datosDireccion(uid: Auth.getUserId()!, did: _direccion.getId),
+      builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>> snapshot) {
+        if (snapshot.hasError) {
+          return _errorView('Error','Error al cargar lso datos');
+        }
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return _loadingView('Cargando','Cargando Datos');
+        }
+
+        if (!snapshot.data!.exists){
+          return _errorView('Sin datos','No se encontraron los datos');
+        }
+
+        if (snapshot.data!.data()!.length==0) {
+          return _errorView('Sin datos','No se encontraron los datos');
+        }
+
+        _direccion=Direccion.fromSnapshot(snapshot.data!);
+        return _dataDisplay();
+  });
   }
     _body(){
       return SingleChildScrollView(
@@ -87,6 +105,45 @@ class _DireccionVistaState extends State<DireccionVista> {
         ),
       );     
     }
+     _loadingView(String titulo,String msgError){
+    return Scaffold(
+      resizeToAvoidBottomInset: true,
+      appBar: AppBar(
+          title: Text(titulo),
+          backgroundColor: Colors.blueAccent,
+      ),
+      body: SingleChildScrollView(
+        child: 
+        InfoView(type: InfoView.LOADING_VIEW, context: context,)
+            )
+            );
+  }
+  _errorView(String titulo,String msgError){
+    return Scaffold(
+      resizeToAvoidBottomInset: true,
+      appBar: AppBar(
+          title: Text(titulo),
+          backgroundColor: Colors.blueAccent,
+      ),
+      body: SingleChildScrollView(
+        child:InfoView(type: InfoView.ERROR_VIEW, context: context,msg: msgError,)
+            )
+            );
+  }
+
+  _dataDisplay(){
+    return Scaffold(
+      resizeToAvoidBottomInset: true,
+      appBar: AppBar(
+          title: Text(_direccion.getNombre),
+          backgroundColor: Colors.blueAccent,
+      ),
+      body: _body(),
+      floatingActionButton: _getFAB(),
+    );
+
+  }
+  
     Widget _getFAB() {
         return SpeedDial(
           animatedIcon: AnimatedIcons.menu_close,
