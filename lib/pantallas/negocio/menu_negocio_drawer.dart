@@ -1,5 +1,6 @@
 import 'package:acuarium/componentes/dialogo.dart';
 import 'package:acuarium/componentes/menu.dart';
+import 'package:acuarium/pantallas/cliente/acerca_de_pantalla.dart';
 import 'package:acuarium/pantallas/inicio_sesion_pantalla.dart';
 import 'package:acuarium/pantallas/negocio/listado_peces_venta_negocio_pantalla.dart';
 import 'package:acuarium/pantallas/negocio/listado_pedidos_pantalla.dart';
@@ -43,6 +44,14 @@ class MenuNegocioDrawer extends StatelessWidget {
           color: Colors.blue,
           thickness: 1.0,
         ),
+        ListTile(
+          leading: Icon(FontAwesomeIcons.info),
+          title: Text('Acerca de'),
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.pushNamed(context, AcercaDe.id);
+          },
+        ),    
         ListTile(
           leading: Icon(FontAwesomeIcons.signOutAlt),
           title: Text('Salir'),

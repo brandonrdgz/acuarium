@@ -1,4 +1,5 @@
 import 'package:acuarium/componentes/etiquetas.dart';
+import 'package:acuarium/componentes/info_views.dart';
 import 'package:acuarium/componentes/qr_reader.dart';
 import 'package:acuarium/modelos/modulo.dart';
 import 'package:acuarium/servicios/firebase/firestore.dart';
@@ -12,9 +13,11 @@ import 'package:intl/intl.dart';
 class ModuleReader extends StatefulWidget {
   TextEditingController moduloCont;
   bool readAv;
-  double? temp=0.0;
-  double? lum=0.0;
-  ModuleReader({Key? key, required this.moduloCont, required this.readAv,this.temp,this.lum}) : super(key: key);
+  double? tempMin=0.0;
+  double? lumMin=0.0;
+  double? tempMax=0.0;
+  double? lumMax=0.0;
+  ModuleReader({Key? key, required this.moduloCont, required this.readAv,this.tempMin, this.tempMax,this.lumMin,this.lumMax}) : super(key: key);
 
   @override
   _ModuleReaderState createState() => _ModuleReaderState();
@@ -27,6 +30,8 @@ class _ModuleReaderState extends State<ModuleReader> {
   final String _tempAlta=' Temperatura alta';
   final String _lumBaja=' Luminocidad baja';
   final String _lumAlta=' Luminocidad alta';
+    final String _temp=' Temperatura en rango';
+  final String _lum=' Luminocidad en rango';
   final DateFormat _formatter = DateFormat('dd/MM/yyyy hh:mm a');
 
   @override
@@ -80,26 +85,42 @@ class _ModuleReaderState extends State<ModuleReader> {
   }
 
   _displayWarning(double lectura, int m){
-    double? comp = m==1?widget.temp:widget.lum;
+    if(m==1){ 
+      
+    if(widget.tempMax==null||widget.tempMin==null){
+      return SizedBox();
+    }else if(widget.tempMax! <= lectura){
+      return  IconLabel(icon:Icon(FontAwesomeIcons.exclamationTriangle, color: Colors.blueGrey),
+                        text: _tempAlta,
+                        );
+    } else if(widget.tempMin! > lectura){
+      return  IconLabel(icon:Icon(FontAwesomeIcons.exclamationTriangle, color: Colors.blueGrey),
+                        text: _tempBaja,
+                        );
+    }else{
+            return  IconLabel(icon:Icon(FontAwesomeIcons.checkCircle, color: Colors.blue),
+                        text: _temp,
+                        );
 
-    if(comp != null){
-    if(comp == 0.0){
+    }
+    }else if(m==2){
+    if(widget.lumMax==null||widget.lumMin==null){
       return SizedBox();
-    }else if(comp > lectura){
+    }else if(widget.lumMax! < lectura){
       return  IconLabel(icon:Icon(FontAwesomeIcons.exclamationTriangle, color: Colors.blueGrey),
-                        text: m==1?_tempBaja:_lumBaja,
+                        text: _lumAlta,
                         );
-    } else if(comp < lectura){
+    } else if(widget.lumMin! > lectura){
       return  IconLabel(icon:Icon(FontAwesomeIcons.exclamationTriangle, color: Colors.blueGrey),
-                        text: m==1?_tempAlta:_lumAlta,
+                        text: _lumBaja,
                         );
     }else{
-      return SizedBox();
+                  return  IconLabel(icon:Icon(FontAwesomeIcons.checkCircle, color: Colors.blue),
+                        text: _lum,
+                        );
     }
-    }else{
-      return SizedBox();
-    }
-           
+
+    }          
 
   }
 
@@ -110,20 +131,19 @@ class _ModuleReaderState extends State<ModuleReader> {
   stream: Firestore.datosModulo(mid: mid),
   builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>> snapshot) {
         if (snapshot.hasError) {
-          return Text('Ocurrio un error');
+          return InfoView(type: InfoView.ERROR_VIEW, context: context,msg: 'Error al cargar los datos');
         }
 
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Text('Cargando datos');
+          return InfoView(type: InfoView.LOADING_VIEW, context: context, );
         }
 
         if (!snapshot.data!.exists){
-          widget.moduloCont.text='';
-          return Text('El código no es valido');
+          return InfoView(type: InfoView.ERROR_VIEW, context: context,msg:'No se encontraron los datos');
         }
 
         if (snapshot.data!.data()!.length==0) {
-          return Text('Sin datos');
+          return InfoView(type: InfoView.ERROR_VIEW, context: context,msg:'No se encontraron los datos');
         }
 
         return _dataDisplay(Modulo.fromSnapshot(snapshot.data!));

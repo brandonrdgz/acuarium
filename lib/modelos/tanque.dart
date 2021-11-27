@@ -11,9 +11,11 @@ class Tanque{
   double _alto=0.0;
   double _ancho=0.0;
   double _profundo=0.0;
-  double _temperatura=0.0;
+  double _temperaturaMax=0.0;
+  double _temperaturaMin=0.0;
   String _fechaMontaje='';
-  double _luminocidad=0.0;
+  double _luminocidadMin=0.0;
+  double _luminocidadMax=0.0;
   List<dynamic> _galeria=[];
 
 
@@ -27,9 +29,11 @@ class Tanque{
   double get getAlto => _alto;
   double get getAncho => _ancho;
   double get getProfundo => _profundo;
-  double get getTemperatura => _temperatura;
+  double get getTemperaturaMax => _temperaturaMax;
+  double get getTemperaturaMin => _temperaturaMin;
   String get getFechaMontaje => _fechaMontaje;
-  double get getLuminocidad => _luminocidad;
+  double get getLuminocidadMin => _luminocidadMin;
+  double get getLuminocidadMax => _luminocidadMax;
   List<dynamic> get getGaleria => _galeria;
 
   set setId(String id) => _id=id;
@@ -40,8 +44,10 @@ class Tanque{
   set setAlto(double a) => _alto=a;
   set setAncho(double a) => _ancho=a;
   set setProfundo(double p) => _profundo=p;
-  set setLuminocidad(double p) => _luminocidad=p;
-  set setTemperatura(double p) => _temperatura=p;
+  set setLuminocidadMin(double p) => _luminocidadMin=p;
+  set setLuminocidadMax(double p) => _luminocidadMax=p;
+  set setTemperaturaMax(double p) => _temperaturaMax=p;
+  set setTemperaturaMin(double p) => _temperaturaMin=p;
   set setFechaMontaje(String f) => _fechaMontaje=f;
   set setGaleria(List<dynamic> l) => _galeria=l;
 
@@ -86,9 +92,11 @@ class Tanque{
                                         TextEditingController altoCont,
                                         TextEditingController anchoCont,
                                         TextEditingController profundoCont,
-                                        TextEditingController temperaturaCont,
+                                        TextEditingController temperaturaMaxCont,
+                                        TextEditingController temperaturaMinCont,
                                         TextEditingController fechaMontajeCont,
-                                        TextEditingController luminocidadCont,
+                                        TextEditingController luminocidadMinCont,
+                                        TextEditingController luminocidadMaxCont,
                                         List<dynamic> imgs){
         return {
           'idCliente':idCliente,
@@ -98,9 +106,11 @@ class Tanque{
           'alto':altoCont.text,
           'ancho':anchoCont.text,
           'profundo':profundoCont.text,
-          'temperatura':temperaturaCont.text,
+          'temperaturaMax':temperaturaMaxCont.text,
+          'temperaturaMin':temperaturaMinCont.text,
           'fechaMontaje':fechaMontajeCont.text,
-          'luminocidad':luminocidadCont.text,
+          'luminocidadMin':luminocidadMinCont.text,
+          'luminocidadMax':luminocidadMaxCont.text,
           'imagenes':imgs
           
             };
@@ -115,10 +125,12 @@ class Tanque{
     this._alto=obj['alto'];
     this._ancho=obj['ancho'];
     this._profundo=obj['profundo'];
-    this._temperatura=obj['temperatura'];
+    this._temperaturaMax=obj['temperaturaMax'];
+    this._temperaturaMin=obj['temperaturaMin'];
     this._fechaMontaje=obj['fechaMontaje'];
     this._galeria=obj['imagenes'];
-    this._luminocidad=obj['luminocidad'];
+    this._luminocidadMax=obj['luminocidadMax'];
+    this._luminocidadMin=obj['luminocidadMin'];
   }
 
     Tanque.fromSnapshot(DocumentSnapshot obj){      
@@ -129,11 +141,13 @@ class Tanque{
     this._litros=double.parse(obj.get('litros'));
     this._alto=double.parse(obj.get('alto'));
     this._ancho=double.parse(obj.get('ancho'));
-    this._temperatura=double.parse(obj.get('temperatura'));
+    this._temperaturaMax=double.parse(obj.get('temperaturaMax'));
+    this._temperaturaMin=double.parse(obj.get('temperaturaMin'));
     this._profundo=double.parse(obj.get('profundo'));
     this._fechaMontaje=obj.get('fechaMontaje');
     this._galeria=obj.get('imagenes');
-    this._luminocidad=double.parse(obj.get('luminocidad'));
+    this._luminocidadMin=double.parse(obj.get('luminocidadMin'));
+    this._luminocidadMax=double.parse(obj.get('luminocidadMax'));
 
   }
 

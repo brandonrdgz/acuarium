@@ -1,9 +1,11 @@
+import 'package:acuarium/pantallas/cliente/acerca_de_pantalla.dart';
 import 'package:acuarium/pantallas/cliente/carrito_pantalla.dart';
 import 'package:acuarium/pantallas/cliente/confirmacion_pedido_cliente_pantalla.dart';
 import 'package:acuarium/pantallas/cliente/informacion_pedido_cliente_pantalla.dart';
 import 'package:acuarium/pantallas/cliente/informacion_pez_venta_pantalla.dart';
 import 'package:acuarium/pantallas/cliente/listado_peces_venta_cliente_pantalla.dart';
 import 'package:acuarium/pantallas/cliente/listado_pedidos_cliente_pantalla.dart';
+import 'package:acuarium/pantallas/cliente/visor_ar_pantalla.dart';
 import 'package:acuarium/pantallas/negocio/agregar_pez_pantalla.dart';
 import 'package:acuarium/pantallas/negocio/editar_pez_pantalla.dart';
 import 'package:acuarium/pantallas/negocio/informacion_pedido_negocio_pantalla.dart';
@@ -49,6 +51,7 @@ class Inicio extends StatelessWidget {
         TanqueEditar.id:(context)=>TanqueEditar(),
         PecesTanque.id:(context)=>PecesTanque(),
         PezTanque.id:(context)=>PezTanque(),
+        AcercaDe.id:(context)=>AcercaDe(),
         NuevoPezTanque.id:(context)=>NuevoPezTanque(),
         EditarPezTanque.id:(context)=>EditarPezTanque(),
         DireccionesLista.id:(context)=>DireccionesLista(),
@@ -67,6 +70,7 @@ class Inicio extends StatelessWidget {
         InformacionPezPantalla.id: (context) => InformacionPezPantalla(),
         ListadoPedidosNegocioPantalla.id: (context) => ListadoPedidosNegocioPantalla(),
         InformacionPedidoNegocioPantalla.id: (context) => InformacionPedidoNegocioPantalla(),
+        VisorAr.id:(context)=>VisorAr(),
       },
     );
   }

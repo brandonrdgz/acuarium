@@ -1,8 +1,13 @@
+import 'package:acuarium/componentes/lista_pedidos.dart';
 import 'package:acuarium/componentes/tarjeta.dart';
+import 'package:acuarium/componentes/video_comp.dart';
 import 'package:acuarium/pantallas/negocio/menu_negocio_drawer.dart';
+import 'package:acuarium/servicios/firebase/auth.dart';
 import 'package:acuarium/servicios/firebase/firestore.dart';
 import 'package:acuarium/servicios/firebase/storage.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:video_player/video_player.dart';
 
 class PaginaPrincipalNegocioPantalla extends StatefulWidget {
   static const String id = 'PaginaPrincipalNegocio';
@@ -17,10 +22,17 @@ class _PaginaPrincipalNegocioPantallaState extends State<PaginaPrincipalNegocioP
   String _nombreNegocio = '';
   String _nombre = '';
   String _correo = '';
+    late VideoPlayerController _controller;
 
   @override
   void initState() {
     super.initState();
+     _controller = VideoPlayerController.network(
+        'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4')
+      ..initialize().then((_) {
+        // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
+        setState(() {});
+      });
     iniDatosEncabezadoDrawer();
   }
 
@@ -56,103 +68,12 @@ class _PaginaPrincipalNegocioPantallaState extends State<PaginaPrincipalNegocioP
             color: Colors.blue,
             thickness: 1.0,
           ),
-          Text(
-            'Últimos pedidos',
-            style: TextStyle(
-              fontSize: 25.0
-            ),
+          AcuariumVideoPlayer(),
+          Divider(
+            color: Colors.blue,
+            thickness: 1.0,
           ),
-          Tarjeta(
-            color: Colors.white,
-            contenido: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: <Widget>[
-                  CircleAvatar(
-                    backgroundColor: Colors.blue,
-                    child: Text(
-                      "1",
-                      style: TextStyle(
-                        fontSize: 10.0
-                      )
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text('Número de peces: 2'),
-                        Text('Total: \$300')
-                      ],
-                    ),
-                  )
-                ],
-              ),
-            )
-          ),
-          Tarjeta(
-            color: Colors.white,
-            contenido: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: <Widget>[
-                  CircleAvatar(
-                    backgroundColor: Colors.blue,
-                    child: Text(
-                      "2",
-                      style: TextStyle(
-                        fontSize: 10.0
-                      )
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text('Número de peces: 1'),
-                        Text('Total: \$150')
-                      ],
-                    ),
-                  )
-                ],
-              ),
-            )
-          ),
-          Tarjeta(
-            color: Colors.white,
-            contenido: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: <Widget>[
-                  CircleAvatar(
-                    backgroundColor: Colors.blue,
-                    child: Text(
-                      "3",
-                      style: TextStyle(
-                        fontSize: 10.0
-                      )
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text('Número de peces: 3'),
-                        Text('Total: \$450')
-                      ],
-                    ),
-                  )
-                ],
-              ),
-            )
-          ),
-        ],
+          PedidosLista(idUsuario: Auth.getUserId()!,esNegocio: true,), ],
       ),
     );
   }

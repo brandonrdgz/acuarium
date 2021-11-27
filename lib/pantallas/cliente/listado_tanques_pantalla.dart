@@ -3,17 +3,16 @@ import 'package:acuarium/componentes/info_views.dart';
 import 'package:acuarium/componentes/rounded_icon_text_form_field.dart';
 import 'package:acuarium/componentes/tarjeta.dart';
 import 'package:acuarium/modelos/tanque.dart';
-import 'package:acuarium/pantallas/cliente/agregar_pez_tanque_pantalla.dart';
 import 'package:acuarium/pantallas/cliente/agregar_tanque_pantalla.dart';
 import 'package:acuarium/pantallas/cliente/editar_tanque_pantalla.dart';
 import 'package:acuarium/pantallas/cliente/informacion_tanque_pantalla.dart';
-import 'package:acuarium/pantallas/cliente/menu_cliente_drawer.dart';
 import 'package:acuarium/servicios/firebase/auth.dart';
 import 'package:acuarium/servicios/firebase/firestore.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
 
 class Tanques extends StatefulWidget {
   static const String id = 'ListaTanques';

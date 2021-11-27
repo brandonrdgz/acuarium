@@ -30,8 +30,11 @@ class _TanqueNuevoState extends State<TanqueNuevo> {
   TextEditingController _profundoCont = new TextEditingController();
   TextEditingController _fechaCont = new TextEditingController();
   TextEditingController _moduloCont = new TextEditingController();
-  TextEditingController _tempCont = new TextEditingController();
-  TextEditingController _lumCont = new TextEditingController();
+    TextEditingController _tempMaxCont = new TextEditingController();
+    TextEditingController _lumMaxCont = new TextEditingController();
+    TextEditingController _tempMinCont = new TextEditingController();
+    TextEditingController _lumMinCont = new TextEditingController();
+    
   GaleryEditorController _galeryController = new GaleryEditorController();
   final String _title='Nuevo Tanque';
   final _formKey = GlobalKey<FormState>();
@@ -85,9 +88,11 @@ class _TanqueNuevoState extends State<TanqueNuevo> {
                 _formField('Alto', _altoCont,TextInputType.number,FontAwesomeIcons.rulerVertical),
                 _formField('Ancho', _anchoCont,TextInputType.number,FontAwesomeIcons.rulerHorizontal),
                 _formField('Largo', _profundoCont,TextInputType.number,FontAwesomeIcons.rulerCombined),
-                _formField('Temperatura ideal',_tempCont,TextInputType.number,FontAwesomeIcons.thermometer),
-                _dateField('Fecha Montaje', _fechaCont,TextInputType.text,FontAwesomeIcons.calendar),
-                _formField('Luminocidad ideal', _lumCont,TextInputType.datetime,FontAwesomeIcons.lightbulb),
+                _formField('Temperatura Max',_tempMaxCont,TextInputType.number,FontAwesomeIcons.thermometer),
+                _formField('Temperatura Min',_tempMinCont,TextInputType.number,FontAwesomeIcons.thermometer),
+                _dateField('Fecha montaje', _fechaCont,TextInputType.text,FontAwesomeIcons.lightbulb),
+                _formField('Luminosidad Max', _lumMaxCont,TextInputType.datetime,FontAwesomeIcons.utensils),
+                _formField('Luminosidad Min', _lumMinCont,TextInputType.datetime,FontAwesomeIcons.utensils),
                   ],
                 ),
                 )
@@ -184,9 +189,11 @@ class _TanqueNuevoState extends State<TanqueNuevo> {
                                         _altoCont,
                                         _anchoCont,
                                         _profundoCont, 
-                                        _tempCont,
+                                        _tempMaxCont,
+                                        _tempMinCont,
                                         _fechaCont, 
-                                        _lumCont,
+                                        _lumMaxCont,
+                                        _lumMinCont,
                                         imgs);
   var res = Firestore.registroTanque(uid: Auth.getUserId()!, datos: datos);
   Dialogo.dialogoProgreso(context,

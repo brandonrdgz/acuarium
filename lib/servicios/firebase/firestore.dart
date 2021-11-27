@@ -1,5 +1,7 @@
+import 'dart:core';
 import 'dart:ffi';
 
+import 'package:acuarium/modelos/pedido.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -8,8 +10,21 @@ class Firestore {
   static const String _coleccionUsuarios= 'usuarios';
   static const String _coleccionTanques= 'tanques';
   static const String _coleccionPecesTanque= 'peces';
+  static const String _coleccionPecesVenta= 'pecesVenta';
   static const String _coleccionModulos= 'modulos';
+  static const String _coleccionCarrito= 'carrito';
+  static const String _coleccionPedidos= 'pedidos';
+  static const String _coleccionItemPedido= 'items';
   static const String _campoNombre= 'nombre';
+  static const String _campoNegocio= 'idNegocio';
+  static const String _campoIdCliente= 'idCliente';
+  static const String _campoDisponible= 'disponible';
+  static const String _campoEstado= 'estado';
+  static const String _campoComprobante= 'comprobante';
+  static const String _campoIdPez= 'idPez';
+  static const String _campoIdNegocios ='idNegocios';
+  static const String _campoRazon ='razon';
+
 
   static Future<void> registroUsuario({
     required String uid,
@@ -139,6 +154,18 @@ class Firestore {
     
   }
 
+  static Stream<QuerySnapshot<Map<String, dynamic>>> listaPecesVenta({
+    required String uid,
+  }) {
+    return  FirebaseFirestore.instance.collection(_coleccionPecesVenta).where(_campoNegocio,isEqualTo: uid).snapshots();
+    
+  }
+
+    static Stream<QuerySnapshot<Map<String, dynamic>>> listaPecesVentaCliente() {
+    return  FirebaseFirestore.instance.collection(_coleccionPecesVenta).where(_campoDisponible,isEqualTo: true).snapshots();
+    
+  }
+
   static Stream<QuerySnapshot<Map<String, dynamic>>> listaPecesTanque({
     required String uid,
     required String tid,
@@ -169,6 +196,15 @@ class Firestore {
                               .doc(tid)
                               .collection(_coleccionPecesTanque)
                               .doc(pid)
+                              .delete();
+
+  }
+
+    static Future<void> eliminaPezVenta({
+    required String did,
+  }) {
+    return FirebaseFirestore.instance.collection(_coleccionPecesVenta)
+                              .doc(did)
                               .delete();
 
   }
@@ -219,6 +255,15 @@ class Firestore {
                             .snapshots();
     
   }
+    static Stream<DocumentSnapshot<Map<String, dynamic>>> datosPezVenta({
+    required String did,
+  }) {
+    return  FirebaseFirestore.instance
+                            .collection(_coleccionPecesVenta)
+                            .doc(did)
+                            .snapshots();
+    
+  }
 
   static Future<DocumentReference<Object?>> registroTanque({
     required String uid,
@@ -227,6 +272,13 @@ class Firestore {
     return FirebaseFirestore.instance.collection(_coleccionUsuarios)
                               .doc(uid)
                               .collection(_coleccionTanques)
+                              .add(datos);
+  }
+
+    static Future<DocumentReference<Object?>> registroPezVenta({
+    required Map<String, dynamic> datos,
+  }) {
+    return FirebaseFirestore.instance.collection(_coleccionPecesVenta)
                               .add(datos);
   }
 
@@ -257,6 +309,25 @@ class Firestore {
                               .doc(pid)
                               .update(datos);
   }
+      static Future<void> actualizaPezVenta({
+    required String pid,
+    required Map<String, dynamic> datos,
+  }) {
+    return FirebaseFirestore.instance.collection(_coleccionPecesVenta)
+                                      .doc(pid)
+                                      .update(datos);
+  }
+
+  static Future<void> actualizaEstadoPezVenta({
+    required String pid,
+    required bool newState,
+  }) {
+    return FirebaseFirestore.instance.collection(_coleccionPecesVenta)
+                                      .doc(pid)
+                                      .update({
+                                        _campoDisponible: newState,
+                                      });
+  }
   
   static Future<void> actualizaTanque({
     required String uid,
@@ -270,15 +341,141 @@ class Firestore {
                               .update(datos);
   }
 
-    static Future<void> intervaloAlimentacion({
-    required String mid,
-    required double interValoHoras,
+static Future<void> agregarCarrito({
+    required String uid,
+    required Map<String,dynamic> data,
   }) {
-    return FirebaseFirestore.instance.collection(_coleccionModulos)
-                              .doc(mid)
-                              .update({
-                                'intervaloAlimentacion':interValoHoras,
-                              });
+    return FirebaseFirestore.instance.collection(_coleccionUsuarios)
+                              .doc(uid)
+                              .collection(_coleccionCarrito)
+                              .add(data);
   }
 
+  static Future<void> eliminarCarrito({
+    required String uid,
+    required String did,
+  }) {
+    return FirebaseFirestore.instance.collection(_coleccionUsuarios)
+                              .doc(uid)
+                              .collection(_coleccionCarrito)
+                              .doc(did)
+                              .delete();
+  }
+
+
+  static Future<bool> enCarrito ({
+    required String uid,
+    required String did,
+  }) async{
+    return await FirebaseFirestore.instance.collection(_coleccionUsuarios)
+                              .doc(uid)
+                              .collection(_coleccionCarrito)
+                              .doc(did)
+                              .snapshots()
+                              .isEmpty;
+  }
+
+  static Stream<QuerySnapshot<Map<String, dynamic>>> datosCarrito({
+    required String uid,
+  }) {
+    return FirebaseFirestore.instance.collection(_coleccionUsuarios)
+                              .doc(uid)
+                              .collection(_coleccionCarrito)
+                              .snapshots();
+  }
+
+  static Future<DocumentReference<Map<String,dynamic>>> crearPedido({
+    required Map<String,dynamic> data,
+  }) {
+    return FirebaseFirestore.instance.collection(_coleccionPedidos)
+                              .add(data);
+  }
+
+    static Future<void> agregaItemPedido({
+    required String id,
+    required Map<String,dynamic> data,
+  }) {
+    return FirebaseFirestore.instance.collection(_coleccionPedidos)
+                              .doc(id)
+                              .collection(_coleccionItemPedido)
+                              .add(data);
+  }
+
+    static Stream<QuerySnapshot<Map<String, dynamic>>> listaPedidosCliente({
+    required String uid
+  }) {
+    return FirebaseFirestore.instance.collection(_coleccionPedidos)
+                              .where(_campoIdCliente, isEqualTo:uid )
+                              .snapshots();
+  }
+
+  static Stream<DocumentSnapshot<Map<String, dynamic>>> datosPedido( {required String pid}) {
+    return FirebaseFirestore.instance.collection(_coleccionPedidos)
+                              .doc(pid).snapshots();
+  }
+
+    static Stream<QuerySnapshot<Map<String, dynamic>>> listaItemsPedido( {required String pid}) {
+    return FirebaseFirestore.instance.collection(_coleccionPedidos)
+                              .doc(pid)
+                              .collection(_coleccionItemPedido)
+                              .snapshots();
+  }
+
+  static Future<void> actualizaEstadoPedido({
+    required String pid,
+    required int newState,
+    String razon="",
+  }) {
+    return FirebaseFirestore.instance.collection(_coleccionPedidos)
+                                      .doc(pid)
+                                      .update({
+                                        _campoEstado: newState,
+                                        _campoRazon:razon,
+                                      });
+  }
+
+  static Future<void> actualizaComprobantePedido({
+    required String pid,
+    required Map<String,String> img,
+  }) {
+    return FirebaseFirestore.instance.collection(_coleccionPedidos)
+                                      .doc(pid)
+                                      .update({
+                                        _campoComprobante: img,
+                                        _campoEstado: Pedido.CLAVE_COMPROBANTE_SUBIDO,
+                                      });
+  }
+
+  static Stream<QuerySnapshot<Map<String, dynamic>>> listaPedidosNegocio({required String uid}) {
+    return FirebaseFirestore.instance.collection(_coleccionPedidos)
+                              .where(_campoIdNegocios, arrayContains: uid )
+                              .snapshots();
+
+  }
+
+    static Stream<DocumentSnapshot<Map<String, dynamic>>> datosUsuario( {required String uid}) {
+    return FirebaseFirestore.instance.collection(_coleccionUsuarios)
+                              .doc(uid).snapshots();
+  }
+
+      static Stream<QuerySnapshot<Map<String, dynamic>>> listaPedidos({
+    required bool esNegocio,
+    required String uid
+  }) {
+    if(esNegocio){
+          return FirebaseFirestore.instance.collection(_coleccionPedidos)
+                              .where(_campoIdNegocios,arrayContains:uid )
+                              .limit(3)
+                              .snapshots();
+
+    }else{
+          return FirebaseFirestore.instance.collection(_coleccionPedidos)
+                              .where(_campoIdCliente, isEqualTo:uid )
+                              .limit(3)
+                              .snapshots();
+
+    }
+
+  }
+  
 }

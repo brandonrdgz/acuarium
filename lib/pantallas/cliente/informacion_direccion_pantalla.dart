@@ -55,7 +55,7 @@ class _DireccionVistaState extends State<DireccionVista> {
       stream: Firestore.datosDireccion(uid: Auth.getUserId()!, did: _direccion.getId),
       builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>> snapshot) {
         if (snapshot.hasError) {
-          return _errorView('Error','Error al cargar lso datos');
+          return _errorView('Error','Error al cargar los datos');
         }
 
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -88,7 +88,7 @@ class _DireccionVistaState extends State<DireccionVista> {
                    Divider(thickness: 2,),  
                    IconLabel(icon:Icon(FontAwesomeIcons.mapMarker, color: Colors.blueAccent),
                             text:' Posición'),  
-                   SizedBox(height: 20,),
+                SizedBox(height: 20,),
                 SizedBox(
                 width: MediaQuery.of(context).size.width, // or use fixed size like 200
                 height: MediaQuery.of(context).size.height/1.6,

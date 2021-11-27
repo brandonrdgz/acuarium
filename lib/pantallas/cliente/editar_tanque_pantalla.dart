@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:acuarium/componentes/dialogo.dart';
 import 'package:acuarium/componentes/galery_editor.dart';
-import 'package:acuarium/componentes/galery_picker.dart';
 import 'package:acuarium/componentes/module_reader.dart';
 import 'package:acuarium/componentes/rounded_icon_text_form_field.dart';
 import 'package:acuarium/modelos/tanque.dart';
@@ -32,8 +31,10 @@ class _TanqueEditarState extends State<TanqueEditar> {
     TextEditingController _profundoCont = new TextEditingController();
     TextEditingController _fechaCont = new TextEditingController();
     TextEditingController _moduloCont = new TextEditingController();
-    TextEditingController _tempCont = new TextEditingController();
-    TextEditingController _lumCont = new TextEditingController();
+    TextEditingController _tempMaxCont = new TextEditingController();
+    TextEditingController _lumMaxCont = new TextEditingController();
+    TextEditingController _tempMinCont = new TextEditingController();
+    TextEditingController _lumMinCont = new TextEditingController();
     final _formKey = GlobalKey<FormState>();
     GaleryEditorController _galeryController = new GaleryEditorController();
     late DateTime _ultFechaSeleccionada;
@@ -51,14 +52,14 @@ class _TanqueEditarState extends State<TanqueEditar> {
       _anchoCont.text=_tanque.getAncho.toString();
       _profundoCont.text=_tanque.getProfundo.toString();
       _fechaCont.text=_tanque.getFechaMontaje;
-      _tempCont.text=_tanque.getTemperatura.toString();
+      _tempMaxCont.text=_tanque.getTemperaturaMax.toString();
+      _tempMinCont.text=_tanque.getTemperaturaMin.toString();
       _moduloCont.text=_tanque.getIdModulo;
-      _lumCont.text=_tanque.getLuminocidad.toString();
+      _lumMaxCont.text=_tanque.getLuminocidadMax.toString();
+      _lumMinCont.text=_tanque.getLuminocidadMin.toString();
       _tanque.getGaleria.forEach((element) { 
        _galeryController.addImageFromMap(element);
-      });
-      
-
+      });     
   }
   @override
   Widget build(BuildContext context) {
@@ -78,7 +79,13 @@ class _TanqueEditarState extends State<TanqueEditar> {
                 Divider(thickness: 1.5,),
                 _form(),
                 Divider(thickness: 1.5,),
-                ModuleReader(moduloCont: _moduloCont,readAv: true,temp: _tanque.getTemperatura,),
+                ModuleReader(moduloCont: _moduloCont,
+                            readAv: true,
+                              tempMax: _tanque.getTemperaturaMax,
+                              tempMin: _tanque.getTemperaturaMin,
+                              lumMax: _tanque.getLuminocidadMax,
+                              lumMin: _tanque.getLuminocidadMin,
+                ),
                ]
         )
       ),
@@ -104,9 +111,11 @@ class _TanqueEditarState extends State<TanqueEditar> {
                 _formField('Alto', _altoCont,TextInputType.number,FontAwesomeIcons.rulerVertical),
                 _formField('Ancho', _anchoCont,TextInputType.number,FontAwesomeIcons.rulerHorizontal),
                 _formField('Largo', _profundoCont,TextInputType.number,FontAwesomeIcons.rulerCombined),
-                _formField('Temperatura ideal',_tempCont,TextInputType.number,FontAwesomeIcons.thermometer),
-                _dateField('Luminocidad ideal', _fechaCont,TextInputType.text,FontAwesomeIcons.lightbulb),
-                _formField('Alimentar cada', _lumCont,TextInputType.datetime,FontAwesomeIcons.utensils),
+                _formField('Temperatura Max',_tempMaxCont,TextInputType.number,FontAwesomeIcons.thermometer),
+                _formField('Temperatura Min',_tempMinCont,TextInputType.number,FontAwesomeIcons.thermometer),
+                _dateField('Fecha montaje', _fechaCont,TextInputType.text,FontAwesomeIcons.lightbulb),
+                _formField('Luminosidad Max', _lumMaxCont,TextInputType.datetime,FontAwesomeIcons.utensils),
+                _formField('Luminosidad Min', _lumMinCont,TextInputType.datetime,FontAwesomeIcons.utensils),
                   ],
                 ),
                 )
@@ -245,9 +254,11 @@ class _TanqueEditarState extends State<TanqueEditar> {
                                         _altoCont,
                                         _anchoCont,
                                         _profundoCont, 
-                                        _tempCont,
+                                        _tempMaxCont,
+                                        _tempMinCont,
                                         _fechaCont, 
-                                        _lumCont,
+                                        _lumMaxCont,
+                                        _lumMinCont,
                                         imgs);
   var res = Firestore.actualizaTanque(uid: Auth.getUserId()!, datos: datos,tid: _tanque.getId);
   Dialogo.dialogoProgreso(context,
@@ -281,8 +292,37 @@ class _TanqueEditarState extends State<TanqueEditar> {
     
 }
   _validaFormulario(){
+
     if(_formKey.currentState!.validate()){
+      double tmax=double.parse(_tempMaxCont.text);
+      double tmin=double.parse(_tempMinCont.text);
+      double lmax=double.parse(_lumMaxCont.text);
+      double lmin=double.parse(_lumMinCont.text);
+      if(tmax<tmin){
+              Fluttertoast.showToast(
+                msg: 'La temperatura minima no puede ser mayor que la maxima',
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.BOTTOM,
+                timeInSecForIosWeb: 1,
+                backgroundColor: Colors.red,
+                textColor: Colors.white,
+                fontSize: 16.0
+            );
+
+      }else if(lmax<lmin){
+                      Fluttertoast.showToast(
+                msg: 'La luminosidad minima no puede ser mayor que la maxima',
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.BOTTOM,
+                timeInSecForIosWeb: 1,
+                backgroundColor: Colors.red,
+                textColor: Colors.white,
+                fontSize: 16.0
+            );
+
+      }else{
       _saveDialog();
+      }
     }else{
       Fluttertoast.showToast(
                 msg: 'Datos no validos',

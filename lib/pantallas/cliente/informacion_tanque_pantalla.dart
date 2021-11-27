@@ -61,7 +61,7 @@ class _TanqueVistaState extends State<TanqueVista> {
   });
   }
 
- _loadingView(String titulo,String msgError){
+  _loadingView(String titulo,String msgError){
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
@@ -113,11 +113,16 @@ class _TanqueVistaState extends State<TanqueVista> {
                   TextLabel(label: 'Ancho',text: '${tanque.getAncho}cm'),
                   TextLabel(label: 'Profundo',text: '${tanque.getProfundo}cm'),
                   TextLabel(label:'Litros', text:'${tanque.getLitros}l'),
-                  TextLabel(label:'Temperatura ideal',text:'${tanque.getTemperatura}° c'),
-                  TextLabel(label:'Luminocidad ideal',text:'${tanque.getLuminocidad}° c'),
+                  TextLabel(label:'Temperatura ideal',text:'${tanque.getTemperaturaMin}° c-${tanque.getTemperaturaMax}° c'),
+                  TextLabel(label:'Luminocidad ideal',text:'${tanque.getLuminocidadMin}l-${tanque.getLuminocidadMax}l'),
                   TextLabel(label:'Fecha Montaje', text:tanque.getFechaMontaje),                  
                   Divider(thickness: 2.0,),
-                  ModuleReader(moduloCont: _moduloCont,readAv: false,temp: tanque.getTemperatura,lum: tanque.getLuminocidad,),
+                  ModuleReader(moduloCont: _moduloCont,
+                              readAv: false,
+                              tempMax: tanque.getTemperaturaMax,
+                              tempMin: tanque.getTemperaturaMin,
+                              lumMax: tanque.getLuminocidadMax,
+                              lumMin: tanque.getLuminocidadMin,),
                   Divider(thickness: 2.0,),
                   FishList(idTanque: tanque.getId),
 

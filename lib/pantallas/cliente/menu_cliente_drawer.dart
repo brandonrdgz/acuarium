@@ -1,5 +1,6 @@
 import 'package:acuarium/componentes/dialogo.dart';
 import 'package:acuarium/componentes/menu.dart';
+import 'package:acuarium/pantallas/cliente/acerca_de_pantalla.dart';
 import 'package:acuarium/pantallas/cliente/carrito_pantalla.dart';
 import 'package:acuarium/pantallas/cliente/listado_direcciones_pantalla.dart';
 import 'package:acuarium/pantallas/cliente/listado_peces_venta_cliente_pantalla.dart';
@@ -89,6 +90,14 @@ class MenuClienteDrawer extends StatelessWidget {
           color: Colors.blue,
           thickness: 1.0,
         ),
+        ListTile(
+          leading: Icon(FontAwesomeIcons.info),
+          title: Text('Acerca de'),
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.pushNamed(context, AcercaDe.id);
+          },
+        ),        
         ListTile(
           leading: Icon(FontAwesomeIcons.signOutAlt),
           title: Text('Salir'),

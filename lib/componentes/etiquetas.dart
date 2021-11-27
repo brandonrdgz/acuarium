@@ -29,6 +29,7 @@ class IconLabel extends StatelessWidget {
 class TextLabel extends StatelessWidget {
   final String label;
   final String text;
+
   const TextLabel({Key? key, required this.label,required this.text}) : super(key: key);
 
   @override
@@ -46,8 +47,9 @@ class TextLabel extends StatelessWidget {
       Flexible(
         flex: 3,
         child:
-          Text(text,
-                      style: TextStyle( fontWeight: FontWeight.normal, fontSize:18.0 ) 
+          Text( 
+                text,
+                style: TextStyle( fontWeight: FontWeight.normal, fontSize:18.0 ,) 
               ),
       ),
     ]
